@@ -60,8 +60,10 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid #
 .btn:disabled{opacity:.5}
 .row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:130px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.bar{display:flex;gap:10px;align-items:center;margin:10px 0 14px;flex-wrap:wrap}
-.bar input[type=search]{flex:1;min-width:170px}
+.bar{display:flex;gap:10px;align-items:center;margin:10px 0 16px;flex-wrap:wrap}
+#s-students .field,#s-students .bar>*{flex:0 1 auto}
+.bar input[type=search]{flex:1;min-width:190px;max-width:420px}
+.bar select{max-width:220px}
 
 .item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:9px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow)}
 .item.tap:active{transform:scale(.995)}
@@ -404,7 +406,7 @@ async function login(){
   }catch(e){ msg.textContent = /Failed to fetch/.test(e.message)? 'No connection. You need to be online the first time you sign in.' : e.message; msg.classList.remove('hidden'); }
   $('#loginBtn').disabled=false;
 }
-async function refreshData(){ data = await api('bootstrap', []); DB.set('data',data); DB.set('lastSync', new Date().toISOString()); buildSelects(); renderStudents(); renderQueue(); versionBanner(); }
+async function refreshData(){ data = await api('bootstrap', []); DB.set('data',data); DB.set('lastSync', new Date().toISOString()); buildSelects(); renderStudents(); renderQueue(); versionBanner(); loadPhotos(); }
 function logout(){ if(queue.length && !confirm(queue.length+' entries have not been sent and will be lost. Sign out anyway?')) return; ['cfg','data','queue','done','local','lastSync'].forEach(DB.del); location.reload(); }
 
 /* ---------------------------------------------------------------- queue and sync */
@@ -432,6 +434,10 @@ async function sync(){
   syncing=false; updateChip(); renderQueue();
 }
 function applyResult(op,result){
+  if(op.fn==='uploadStudentPhoto' && result && result.url){
+    const m=String(result.url).match(/[-\w]{25,}/);
+    if(m && op.args[1] && String(op.args[1]).indexOf('data:')===0){ photoCache[m[0]]=op.args[1]; DB.set('photos',photoCache); }
+  }
   if(op.fn==='saveStudent' && result && result.Student_ID){
     const tmp=op.meta.tmpId;
     if(tmp && local[tmp]){ const rec=local[tmp]; rec.Student_ID=result.Student_ID; delete local[tmp]; local[result.Student_ID]=rec; }
@@ -465,10 +471,28 @@ const user = () => cfg.user;
 const myClass = () => (user().role==='Teacher' && user().classAssigned) ? user().classAssigned : '';
 const lists = () => (data&&data.lists)||{};
 const optItems = () => (data&&data.optionalItems)||[];
-function photoSrc(u){ if(!u) return ''; const m=String(u).match(/[-\w]{25,}/); return m? 'https://drive.google.com/thumbnail?id='+m[0]+'&sz=w400' : u; }
-const avatar = (s,big) => '<div class="av'+(big?' big':'')+'">'+(s.Photo_URL
-  ? '<img src="'+esc(photoSrc(s.Photo_URL))+'" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.textContent=\''+esc(initials(s))+'\'">'
-  : esc(initials(s)))+'</div>';
+let photoCache = DB.get('photos', {});
+function fileIdOf(s){ if(s.Photo_File_ID) return String(s.Photo_File_ID).trim();
+  const m=String(s.Photo_URL||'').match(/[-\w]{25,}/); return m? m[0] : ''; }
+function photoSrc(s){
+  if(s.Photo_URL && String(s.Photo_URL).indexOf('data:')===0) return s.Photo_URL;   // just taken on this device
+  const id=fileIdOf(s); if(id && photoCache[id]) return photoCache[id];
+  return '';
+}
+async function loadPhotos(){
+  if(!navigator.onLine || !cfg || !cfg.token) return;
+  const want=[...new Set(students().map(fileIdOf).filter(id=>id && !photoCache[id]))].slice(0,25);
+  if(!want.length) return;
+  try{
+    const got = await api('getPhotos',[want]);
+    Object.keys(got||{}).forEach(k=>{ if(got[k]) photoCache[k]=got[k]; });
+    DB.set('photos',photoCache); renderStudents();
+  }catch(e){ /* old backend or offline: initials stay */ }
+}
+function avatar(s,big){
+  const src=photoSrc(s);
+  return '<div class="av'+(big?' big':'')+'">'+(src? '<img src="'+esc(src)+'" alt="">' : esc(initials(s)))+'</div>';
+}
 function fill(sel,arr,blank){ const el=$(sel); if(!el) return; const v=el.value; el.innerHTML=(blank!==undefined?'<option value="">'+blank+'</option>':'')+(arr||[]).map(x=>'<option>'+esc(x)+'</option>').join(''); if([].slice.call(el.options).some(o=>o.value===v)) el.value=v; }
 const classOptions = () => myClass()? [myClass()] : ((data.classes||[]).map(c=>c.name));
 function defaultSession(){
@@ -1260,9 +1284,9 @@ function versionBanner(){
 function showApp(){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#whoami').textContent = user().name+' '+user().role+(user().classAssigned?' '+user().classAssigned:'');
-  buildNav(); buildSelects(); renderStudents(); renderQueue(); versionBanner(); sync(); autoRefresh();
+  buildNav(); buildSelects(); renderStudents(); renderQueue(); versionBanner(); sync(); autoRefresh(); loadPhotos();
 }
-const NEEDED_FUNCTIONS=['bootstrap','getStudentHistory','getStaff','saveStaff','getRecentPayments','getBillingRows','getAuditLog','addListValue','saveBillFlags','generateBills','recordPayment','saveScores','saveAttendance','getReportCard','saveReportCardComments','getAnalytics'];
+const NEEDED_FUNCTIONS=['bootstrap','getStudentHistory','getStaff','saveStaff','getRecentPayments','getBillingRows','getAuditLog','addListValue','saveBillFlags','generateBills','recordPayment','saveScores','saveAttendance','getReportCard','saveReportCardComments','getAnalytics','getPhotos'];
 function missingFunctions(v){ const have=(v&&v.functionList)||[]; if(!have.length) return []; return NEEDED_FUNCTIONS.filter(f=>have.indexOf(f)<0); }
 async function autoRefresh(){
   if(!navigator.onLine || !cfg || !cfg.token) return;
