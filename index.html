@@ -406,7 +406,10 @@ async function login(){
   }catch(e){ msg.textContent = /Failed to fetch/.test(e.message)? 'No connection. You need to be online the first time you sign in.' : e.message; msg.classList.remove('hidden'); }
   $('#loginBtn').disabled=false;
 }
-async function refreshData(){ data = await api('bootstrap', []); DB.set('data',data); DB.set('lastSync', new Date().toISOString()); buildSelects(); renderStudents(); renderQueue(); versionBanner(); loadPhotos(); }
+async function refreshData(){ data = await api('bootstrap', []);
+  const known={}; (data.students||[]).forEach(s=>known[s.Student_ID]=1);
+  Object.keys(local).forEach(k=>{ if(local[k]._sent && known[local[k].Student_ID]) delete local[k]; });
+  DB.set('local',local); DB.set('data',data); DB.set('lastSync', new Date().toISOString()); buildSelects(); renderStudents(); renderQueue(); versionBanner(); loadPhotos(); }
 function logout(){ if(queue.length && !confirm(queue.length+' entries have not been sent and will be lost. Sign out anyway?')) return; ['cfg','data','queue','done','local','lastSync'].forEach(DB.del); location.reload(); }
 
 /* ---------------------------------------------------------------- queue and sync */
@@ -433,11 +436,14 @@ async function sync(){
   }
   syncing=false; updateChip(); renderQueue();
 }
+function markSent(id){ if(id && local[id]){ local[id]._sent=true; DB.set('local',local); } }
 function applyResult(op,result){
   if(op.fn==='uploadStudentPhoto' && result && result.url){
     const m=String(result.url).match(/[-\w]{25,}/);
     if(m && op.args[1] && String(op.args[1]).indexOf('data:')===0){ photoCache[m[0]]=op.args[1]; DB.set('photos',photoCache); }
+    markSent(op.meta.studentId); renderStudents();
   }
+  if(op.fn==='saveStudent' && result && result.Student_ID){ markSent(result.Student_ID); }
   if(op.fn==='saveStudent' && result && result.Student_ID){
     const tmp=op.meta.tmpId;
     if(tmp && local[tmp]){ const rec=local[tmp]; rec.Student_ID=result.Student_ID; delete local[tmp]; local[result.Student_ID]=rec; }
@@ -461,7 +467,7 @@ window.addEventListener('offline', updateChip);
 function students(){
   const base=(data&&data.students)||[], map={};
   base.forEach(s=>map[s.Student_ID]=s);
-  Object.keys(local).forEach(k=>{ const l=local[k]; map[l.Student_ID]=Object.assign({}, map[l.Student_ID]||{}, l, {_local:true}); });
+  Object.keys(local).forEach(k=>{ const l=local[k]; map[l.Student_ID]=Object.assign({}, map[l.Student_ID]||{}, l, {_local:!l._sent}); });
   return Object.keys(map).map(k=>map[k]).sort((a,b)=>String(a.Last_Name||'').localeCompare(String(b.Last_Name||'')));
 }
 const fullName = s => [s.First_Name,s.Middle_Name,s.Last_Name].filter(Boolean).join(' ') || s.Full_Name || '';
