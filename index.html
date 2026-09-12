@@ -322,6 +322,7 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
       <div class="row">
         <button class="btn" id="syncNow">Send now</button>
         <button class="btn quiet" id="refreshData">Refresh from database</button>
+        <button class="btn quiet" id="testConn">Test connection</button>
       </div>
       <h3>Waiting to send</h3>
       <div id="queueList"></div>
@@ -408,7 +409,7 @@ async function sync(){
       queue.shift(); done.unshift(Object.assign({}, op, {result:result, doneAt:new Date().toISOString()})); done=done.slice(0,50);
       DB.set('queue',queue); DB.set('done',done);
     }catch(e){
-      op.tries++; op.error=/Unknown function|Tab not found: "Sync_Log"/.test(e.message)? 'The database is running older portal code. Ask the admin to update Code.gs and redeploy, then tap Send now.' : e.message; DB.set('queue',queue);
+      op.tries++; op.error=e.message; DB.set('queue',queue);
       if(/Session expired|Not signed in|Access has been removed/.test(e.message)){ toast(e.message,5000); cfg.token=null; DB.set('cfg',cfg); break; }
       if(/Failed to fetch|NetworkError/.test(e.message)) break;
       queue.push(queue.shift()); DB.set('queue',queue);
@@ -455,7 +456,12 @@ const optItems = () => (data&&data.optionalItems)||[];
 const avatar = (s,big) => '<div class="av'+(big?' big':'')+'">'+(s.Photo_URL?'<img src="'+esc(s.Photo_URL)+'" alt="">':esc(initials(s)))+'</div>';
 function fill(sel,arr,blank){ const el=$(sel); if(!el) return; const v=el.value; el.innerHTML=(blank!==undefined?'<option value="">'+blank+'</option>':'')+(arr||[]).map(x=>'<option>'+esc(x)+'</option>').join(''); if([].slice.call(el.options).some(o=>o.value===v)) el.value=v; }
 const classOptions = () => myClass()? [myClass()] : ((data.classes||[]).map(c=>c.name));
-const defaultSession = () => DB.get('session') || (lists().Session||[]).slice(-1)[0] || '';
+function defaultSession(){
+  const saved=DB.get('session'); if(saved) return saved;
+  const withFees=[...new Set(((data&&data.fees)||[]).map(f=>f.Session).filter(Boolean))];
+  if(withFees.length) return withFees[withFees.length-1];
+  return (lists().Session||[]).slice(-1)[0] || '';
+}
 function feeRow(session,cls,term){ return (data.fees||[]).filter(f=>f.Session===session && f.Class===cls && f.Term===term)[0]; }
 function classStudents(cls){ return students().filter(s=>s.Grade_Level===cls && s.Enrollment_Status==='Active' && !isTmp(s.Student_ID)); }
 
@@ -794,12 +800,15 @@ function renderBilling(){
   const all=(billRows||[]);
   const billed=all.reduce((a,b)=>a+Number(b.Grand_Total_Due||0),0), paid=all.reduce((a,b)=>a+Number(b.Amount_Paid||0),0);
   const cnt=function(st){ return all.filter(b=>b.Status===st).length; };
+  const feeRowsHere=((data&&data.fees)||[]).filter(f=>f.Session===ses && f.Term===term).length;
+  const warn = feeRowsHere? '' : '<div class="note warn" style="margin-bottom:10px">No fee prices exist for <b>'+esc(ses)+' '+esc(term)+'</b> in Master Fees, so every total shows zero. Pick a different session or term above, or add the prices to the Master Fees tab.</div>';
+  $('#billList').dataset.warn=warn;
   $('#blTotals').innerHTML = billRows? '<div class="stat"><b>'+naira(billed)+'</b><small>Total billed &middot; '+all.length+' pupils</small></div>'+
       '<div class="stat"><b style="color:var(--ok)">'+naira(paid)+'</b><small>Collected'+(billed?' &middot; '+Math.round(paid/billed*100)+'%':'')+'</small></div>'+
       '<div class="stat"><b style="color:var(--red)">'+naira(billed-paid)+'</b><small>Outstanding</small></div>'+
       '<div class="stat"><b>'+cnt('Paid')+' / '+cnt('Part Payment')+' / '+cnt('Owing')+'</b><small>Paid / Part / Owing</small></div>'
     : '<div class="stat" style="grid-column:1/-1"><b style="font-size:15px;color:var(--amber)">Totals unavailable</b><small>'+esc(billError||'Tap Refresh.')+'</small></div>';
-  if(!rows.length){ $('#billList').innerHTML='<div class="empty">'+(blFilter?'No pupils with that status.':'No active students.')+'</div>'; return; }
+  if(!rows.length){ $('#billList').innerHTML=warn+'<div class="empty">'+(blFilter?'No pupils with that status.':'No active students.')+'</div>'; return; }
   const items=optItems();
   const head='<tr><th>Student</th>'+items.map(it=>'<th class="num" title="'+esc(it)+'">'+esc(shortItem(it))+'</th>').join('')+'<th class="num">Compulsory</th><th class="num">Extras</th><th class="num">Total due</th><th class="num">Paid</th><th class="num">Balance</th><th>Status</th></tr>';
   const body=rows.slice(0,120).map(function(s){
@@ -815,7 +824,7 @@ function renderBilling(){
       '<td class="num" style="color:'+(bal>0?'var(--red)':'var(--ok)')+'">'+naira(bal)+'</td>'+
       '<td><span class="tag '+(st==='Paid'?'':(st==='Owing'?'err':'pend'))+'">'+esc(st)+'</span><br><button class="btn sm" data-save="'+esc(s.Student_ID)+'" style="margin-top:6px">Save</button></td></tr>';
   }).join('');
-  $('#billList').innerHTML='<div class="scroll"><table>'+head+body+'</table></div>'+(rows.length>120?'<div class="empty">Showing first 120.</div>':'');
+  $('#billList').innerHTML=warn+'<div class="scroll"><table>'+head+body+'</table></div>'+(rows.length>120?'<div class="empty">Showing first 120.</div>':'');
 }
 $('#billList').addEventListener('change',function(e){
   const cb=e.target.closest('[data-item]'); if(!cb) return;
@@ -1088,7 +1097,7 @@ function renderQueue(){
   if(!$('#syncSummary')) return;
   const last=DB.get('lastSync'), bad=queue.filter(o=>o.error).length;
   $('#syncSummary').innerHTML = '<b style="font-size:22px">'+queue.length+'</b> waiting to send'+(bad?' &middot; <b>'+bad+'</b> need attention':'')+'<br><small>Last refreshed '+(last?new Date(last).toLocaleString():'never')+'. '+(navigator.onLine?'Online.':'Offline, entries are kept on this device.')+'</small>';
-  $('#queueList').innerHTML = queue.length? queue.map(o=>'<div class="item"><div class="t"><div>'+esc(o.label)+'</div><small>'+new Date(o.ts).toLocaleString()+(o.error?' &middot; '+esc(o.error):'')+'</small></div>'+(o.error?'<button class="btn danger sm" data-drop="'+o.id+'">Remove</button>':'<span class="tag pend">Waiting</span>')+'</div>').join('') : '<div class="empty">Everything has been sent.</div>';
+  $('#queueList').innerHTML = queue.length? queue.map(o=>'<div class="item" style="flex-wrap:wrap"><div class="t"><div>'+esc(o.label)+'</div><small style="white-space:normal">'+new Date(o.ts).toLocaleString()+'</small>'+(o.error?'<div class="note err" style="margin:6px 0 0;font-size:12.5px">'+esc(o.error)+'</div>':'')+'</div>'+(o.error?'<button class="btn danger sm" data-drop="'+o.id+'">Remove</button>':'<span class="tag pend">Waiting</span>')+'</div>').join('') : '<div class="empty">Everything has been sent.</div>';
   $('#doneList').innerHTML = done.length? done.slice(0,20).map(o=>'<div class="item"><div class="t"><div>'+esc(o.label)+'</div><small>Sent '+new Date(o.doneAt).toLocaleString()+(o.result&&o.result.Student_ID?' &middot; '+esc(o.result.Student_ID):'')+(o.result&&o.result.Receipt_No?' &middot; '+esc(o.result.Receipt_No):'')+'</small></div><span class="tag">Sent</span></div>').join('') : '<div class="empty">Nothing sent yet.</div>';
   $('#acct').textContent = user().name+' '+user().role+(user().classAssigned?' '+user().classAssigned:'')+' '+user().email;
   renderPayList(); updateChip();
@@ -1098,6 +1107,21 @@ $('#syncNow').onclick=function(){ if(!navigator.onLine) return toast('No connect
 $('#refreshData').onclick=async function(){ if(!navigator.onLine) return toast('No connection'); try{ await refreshData(); toast('Refreshed from the database'); }catch(e){ toast(e.message,4000);} };
 $('#logout').onclick=logout;
 $('#auditLoad').onclick=loadAudit;
+$('#testConn').onclick=async function(){
+  if(!navigator.onLine) return toast('No connection');
+  try{
+    const v = await api('portalVersion',[]);
+    openSheet('<h2 style="margin-top:0">Connection test</h2><dl class="kv">'+
+      '<dt>Portal address</dt><dd style="word-break:break-all">'+esc(cfg.apiUrl)+'</dd>'+
+      '<dt>Backend version</dt><dd><b>'+esc(v.version)+'</b>'+(v.version==='2026-09-12-v5'?' <span class="tag">current</span>':' <span class="tag err">OUT OF DATE</span>')+'</dd>'+
+      '<dt>Sync_Log tab</dt><dd>'+(v.syncTabExists?'exists':'<span class="tag err">missing</span>')+'</dd>'+
+      '<dt>Functions available</dt><dd>'+v.functions+'</dd></dl>'+
+      (v.version==='2026-09-12-v5'?'<p class="note">The database is up to date. Tap <b>Send now</b> to push the waiting entries.</p>':'<p class="note warn">The deployed web app is running old code. In Apps Script: Deploy &rarr; Manage deployments &rarr; pencil &rarr; Version: <b>New version</b> &rarr; Deploy.</p>'));
+  }catch(e){
+    openSheet('<h2 style="margin-top:0">Connection test</h2><p class="note err">'+esc(e.message)+'</p>'+
+      (/Unknown function/.test(e.message)? '<p class="note warn">The deployed web app is running code from before this version. In Apps Script: Deploy &rarr; Manage deployments &rarr; pencil icon &rarr; Version: <b>New version</b> &rarr; Deploy. Saving the file is not enough.</p>':''));
+  }
+};
 
 /* ---------------------------------------------------------------- navigation */
 const SCREENS={
