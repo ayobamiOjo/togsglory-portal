@@ -391,7 +391,7 @@ async function login(){
   }catch(e){ msg.textContent = /Failed to fetch/.test(e.message)? 'No connection. You need to be online the first time you sign in.' : e.message; msg.classList.remove('hidden'); }
   $('#loginBtn').disabled=false;
 }
-async function refreshData(){ data = await api('bootstrap', []); DB.set('data',data); DB.set('lastSync', new Date().toISOString()); buildSelects(); renderStudents(); renderQueue(); }
+async function refreshData(){ data = await api('bootstrap', []); DB.set('data',data); DB.set('lastSync', new Date().toISOString()); buildSelects(); renderStudents(); renderQueue(); versionBanner(); }
 function logout(){ if(queue.length && !confirm(queue.length+' entries have not been sent and will be lost. Sign out anyway?')) return; ['cfg','data','queue','done','local','lastSync'].forEach(DB.del); location.reload(); }
 
 /* ---------------------------------------------------------------- queue and sync */
@@ -408,7 +408,7 @@ async function sync(){
       queue.shift(); done.unshift(Object.assign({}, op, {result:result, doneAt:new Date().toISOString()})); done=done.slice(0,50);
       DB.set('queue',queue); DB.set('done',done);
     }catch(e){
-      op.tries++; op.error=e.message; DB.set('queue',queue);
+      op.tries++; op.error=/Unknown function|Tab not found: "Sync_Log"/.test(e.message)? 'The database is running older portal code. Ask the admin to update Code.gs and redeploy, then tap Send now.' : e.message; DB.set('queue',queue);
       if(/Session expired|Not signed in|Access has been removed/.test(e.message)){ toast(e.message,5000); cfg.token=null; DB.set('cfg',cfg); break; }
       if(/Failed to fetch|NetworkError/.test(e.message)) break;
       queue.push(queue.shift()); DB.set('queue',queue);
@@ -772,13 +772,17 @@ let billFlags={}, billRows=null, blFilter='';
 function billKey(id){ return id+'|'+$('#blSession').value+'|'+$('#blTerm').value; }
 function billRowFor(id){ return (billRows||[]).filter(b=>b.Student_ID===id)[0]; }
 function shortItem(it){ return it.replace(/\(.*\)/,'').replace('Wednesday Wear','Wed. Wear').replace('Coding & Robotics','Coding').replace('Friday Wear','Fri. Wear').trim(); }
+let billError=null;
 async function loadBilling(){
-  if(!navigator.onLine){ billRows=null; renderBilling(); return; }
+  billError=null;
+  if(!navigator.onLine){ billRows=null; billError='No connection. Ticking items still works and will send later.'; renderBilling(); return; }
   try{ billRows = await api('getBillingRows',[$('#blSession').value,$('#blTerm').value]);
     (billRows||[]).forEach(function(b){ const k=b.Student_ID+'|'+b.Session+'|'+b.Term; billFlags[k]=billFlags[k]||{};
       optItems().forEach(function(it){ if(billFlags[k][it]===undefined) billFlags[k][it] = Number(b[it+' (1=yes)']||0)===1; }); });
     renderBilling();
-  }catch(e){ toast(e.message,4000); }
+  }catch(e){ billRows=null; billError=/Unknown function/.test(e.message)
+      ? 'The school database is running an older version of the portal code. Ask the admin to paste the latest Code.gs in Apps Script and redeploy.'
+      : e.message; renderBilling(); }
 }
 function renderBilling(){
   if(['Admin','Bursar'].indexOf(user().role)<0){ $('#billList').innerHTML='<p class="note">Your role can view fees on a student profile, but not change bills.</p>'; $('#blTotals').innerHTML=''; return; }
@@ -794,7 +798,7 @@ function renderBilling(){
       '<div class="stat"><b style="color:var(--ok)">'+naira(paid)+'</b><small>Collected'+(billed?' &middot; '+Math.round(paid/billed*100)+'%':'')+'</small></div>'+
       '<div class="stat"><b style="color:var(--red)">'+naira(billed-paid)+'</b><small>Outstanding</small></div>'+
       '<div class="stat"><b>'+cnt('Paid')+' / '+cnt('Part Payment')+' / '+cnt('Owing')+'</b><small>Paid / Part / Owing</small></div>'
-    : '<div class="stat"><b>Offline</b><small>Totals need a connection. Ticking items still works.</small></div>';
+    : '<div class="stat" style="grid-column:1/-1"><b style="font-size:15px;color:var(--amber)">Totals unavailable</b><small>'+esc(billError||'Tap Refresh.')+'</small></div>';
   if(!rows.length){ $('#billList').innerHTML='<div class="empty">'+(blFilter?'No pupils with that status.':'No active students.')+'</div>'; return; }
   const items=optItems();
   const head='<tr><th>Student</th>'+items.map(it=>'<th class="num" title="'+esc(it)+'">'+esc(shortItem(it))+'</th>').join('')+'<th class="num">Compulsory</th><th class="num">Extras</th><th class="num">Total due</th><th class="num">Paid</th><th class="num">Balance</th><th>Status</th></tr>';
@@ -1151,10 +1155,18 @@ $('#payHistToggle').addEventListener('click',function(e){ const b=e.target.close
 $('#payRefresh').onclick=function(){ if(payHist==='all') loadServerPayments(); else renderPayList(); };
 $('#paySave').onclick=savePayment; $('#scSave').onclick=saveScores; $('#atSave').onclick=saveAttendance;
 $('#loginBtn').onclick=login;
+function backendOutdated(){ return !data || !data.optionalItems || !data.fees || !data.staff; }
+function versionBanner(){
+  const old=$('#verBanner'); if(old) old.remove();
+  if(!backendOutdated()) return;
+  const d=document.createElement('div'); d.id='verBanner'; d.className='note warn'; d.style.margin='0 16px';
+  d.innerHTML='<b>The school database needs updating.</b><br>Fee lists, staff and billing will stay empty until the admin pastes the latest Code.gs into Apps Script, runs setupCheck, and redeploys (Deploy \u2192 Manage deployments \u2192 pencil \u2192 Version: New). Then tap <b>Refresh from database</b>.';
+  document.querySelector('main').prepend(d);
+}
 function showApp(){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#whoami').textContent = user().name+' '+user().role+(user().classAssigned?' '+user().classAssigned:'');
-  buildNav(); buildSelects(); renderStudents(); renderQueue(); sync();
+  buildNav(); buildSelects(); renderStudents(); renderQueue(); versionBanner(); sync();
 }
 (function init(){
   if('serviceWorker' in navigator){
