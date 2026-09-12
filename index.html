@@ -31,8 +31,12 @@ a{color:var(--leaf)}
 .sync i{width:9px;height:9px;border-radius:50%;background:#7ED39A;display:inline-block;flex:none}
 .sync.off i{background:#F0C46B}.sync.err i{background:#F08B82}
 
-main{padding:16px 16px calc(88px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
+main{padding:16px 16px calc(88px + env(safe-area-inset-bottom));max-width:820px;margin:0 auto}
+@media (min-width:820px){ main{max-width:none;padding:20px 24px calc(92px + env(safe-area-inset-bottom))} }
+body.wide main{max-width:none}
+.narrow{max-width:820px}
 .screen{display:none}.screen.on{display:block}
+.screen.narrow{margin:0 auto}
 
 nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{flex:1;background:none;border:0;padding:8px 2px 10px;font-size:11px;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;gap:3px;min-height:56px}
@@ -82,11 +86,17 @@ details .body{padding:0 14px 6px}
 .kv dt{color:var(--ink-2)}.kv dd{margin:0}
 table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
 tr:last-child td{border-bottom:0}
-th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:middle}
+th,td{padding:10px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:middle}
+@media (max-width:600px){th,td{padding:8px 7px;font-size:13px}}
 th{background:var(--mist);font-weight:650;font-size:12.5px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
 td.num,th.num{text-align:right}
-td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
-.scroll{overflow-x:auto}
+td input[type=number]{width:72px;min-height:40px;padding:8px 6px;text-align:center}
+td input[type=text]{min-height:40px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r)}
+.scroll table{min-width:max-content}
+#billList td:first-child,#billList th:first-child{white-space:nowrap;position:sticky;left:0;background:var(--card);z-index:1}
+#billList th:first-child{background:var(--mist)}
+#billList td:first-child small{white-space:nowrap}
 .status-btns{display:flex;gap:4px;width:100%}
 .status-btns button{flex:1;min-height:38px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:12px}
 .status-btns button.on{background:var(--green);color:#fff;border-color:var(--green)}
@@ -94,8 +104,9 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
 .checks label{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:13px;min-height:44px}
 .checks input{width:18px;height:18px;flex:none}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow)}
-.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:8px}
-.stat b{display:block;font-size:23px;font-weight:650;line-height:1.15}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:9px;margin-bottom:8px}
+.stat b{display:block;font-size:22px;font-weight:650;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.billhead .stat b{font-size:20px}
 .stat small{color:var(--ink-2)}
 .stat.tap{cursor:pointer}
 .toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;z-index:9;max-width:90vw;text-align:center}
@@ -115,7 +126,7 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
 .pcard .av{margin:0 auto 9px;width:60px;height:60px}
 .pcard b{display:block;font-size:14px;font-weight:650;line-height:1.25}
 .pcard small{color:var(--ink-2);font-size:12px}
-.billhead{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.billhead{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:14px}
 .chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px;min-height:36px}
 .chip.on{background:var(--green);color:#fff;border-color:var(--green)}
 .rc{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
@@ -180,12 +191,12 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
       <div id="studentList"></div>
     </section>
 
-    <section class="screen" id="s-profile">
+    <section class="screen narrow" id="s-profile">
       <button class="back noprint" id="profBack">&larr; Students</button>
       <div id="profileBody"></div>
     </section>
 
-    <section class="screen" id="s-register">
+    <section class="screen narrow" id="s-register">
       <h1 id="regTitle">Register a student</h1>
       <p class="note" id="regNote">The student ID is given by the school database when this entry is sent. Until then it shows as "Waiting for ID".</p>
       <div class="item" style="margin-bottom:14px">
@@ -201,7 +212,7 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
       </div>
     </section>
 
-    <section class="screen" id="s-pay">
+    <section class="screen narrow" id="s-pay">
       <h1>Record a payment</h1>
       <label class="field"><span>Student <em>*</em></span><input type="search" id="paySearch" placeholder="Type a name or ID to search"></label>
       <div id="payPicked" class="hidden"></div>
@@ -297,7 +308,7 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
 
     <section class="screen" id="s-staff">
       <h1>Staff</h1>
-      <div class="bar"><input type="search" id="stSearch" placeholder="Search name, role, class"></div>
+      <div class="bar"><input type="search" id="stSearch" placeholder="Search name, role, class"><button class="btn sm" id="stAdd">Add staff</button></div>
       <div id="staffList"></div>
     </section>
 
@@ -314,7 +325,7 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
       <div id="listValues"></div>
     </section>
 
-    <section class="screen" id="s-more">
+    <section class="screen narrow" id="s-more">
       <h1>More</h1>
       <div id="moreList"></div>
       <h2>Sync</h2>
@@ -454,7 +465,10 @@ const user = () => cfg.user;
 const myClass = () => (user().role==='Teacher' && user().classAssigned) ? user().classAssigned : '';
 const lists = () => (data&&data.lists)||{};
 const optItems = () => (data&&data.optionalItems)||[];
-const avatar = (s,big) => '<div class="av'+(big?' big':'')+'">'+(s.Photo_URL?'<img src="'+esc(s.Photo_URL)+'" alt="">':esc(initials(s)))+'</div>';
+function photoSrc(u){ if(!u) return ''; const m=String(u).match(/[-\w]{25,}/); return m? 'https://drive.google.com/thumbnail?id='+m[0]+'&sz=w400' : u; }
+const avatar = (s,big) => '<div class="av'+(big?' big':'')+'">'+(s.Photo_URL
+  ? '<img src="'+esc(photoSrc(s.Photo_URL))+'" alt="" referrerpolicy="no-referrer" onerror="this.parentNode.textContent=\''+esc(initials(s))+'\'">'
+  : esc(initials(s)))+'</div>';
 function fill(sel,arr,blank){ const el=$(sel); if(!el) return; const v=el.value; el.innerHTML=(blank!==undefined?'<option value="">'+blank+'</option>':'')+(arr||[]).map(x=>'<option>'+esc(x)+'</option>').join(''); if([].slice.call(el.options).some(o=>o.value===v)) el.value=v; }
 const classOptions = () => myClass()? [myClass()] : ((data.classes||[]).map(c=>c.name));
 function defaultSession(){
@@ -839,6 +853,7 @@ $('#billList').addEventListener('change',function(e){
 $('#billList').addEventListener('click',function(e){
   const b=e.target.closest('[data-save]'); if(!b) return;
   const id=b.dataset.save, key=billKey(id), s=students().filter(x=>x.Student_ID===id)[0];
+  if(!billRows && !confirm('The current bill for this pupil has not loaded from the database, so saving now will replace their ticked items with what you see here. Continue?')) return;
   enqueue('saveBillFlags',[{Student_ID:id, Session:$('#blSession').value, Term:$('#blTerm').value, items:billFlags[key]||{}}], 'Bill items - '+fullName(s)+' ('+$('#blTerm').value+')', {studentId:id});
   toast(navigator.onLine?'Saved, sending':'Saved on this device');
 });
@@ -898,7 +913,13 @@ function recalcRow(tr){
   tr.querySelector('[data-tot]').innerHTML='<b>'+t+'</b>';
   tr.querySelector('[data-grade]').innerHTML='<span class="grade-pill'+(t<40?' low':'')+'">'+esc(b.g)+'</span>'+(b.r?'<br><small>'+esc(b.r)+'</small>':'');
 }
-$('#scoreGrid').addEventListener('input',function(e){ const tr=e.target.closest('tr[data-id]'); if(tr) recalcRow(tr); });
+$('#scoreGrid').addEventListener('input',function(e){
+  const el=e.target.closest('input[type=number]');
+  if(el){ const max=Number(el.max), v=Number(el.value);
+    if(el.value!=='' && v>max){ el.value=max; el.classList.add('bad'); toast('Maximum for this column is '+max); setTimeout(()=>el.classList.remove('bad'),1200); }
+    if(el.value!=='' && v<0) el.value=0; }
+  const tr=e.target.closest('tr[data-id]'); if(tr) recalcRow(tr);
+});
 function saveScores(){
   if(['Admin','Teacher','Head Teacher'].indexOf(user().role)<0) return toast('Your role cannot enter scores');
   const subject=$('#scSubject').value; if(!subject) return toast('Choose a subject');
@@ -1085,13 +1106,44 @@ $('#stSearch').addEventListener('input',renderStaff);
 $('#staffList').addEventListener('click',function(e){
   const it=e.target.closest('.item'); if(!it) return;
   const s=(data.staff||[]).filter(x=>x.Staff_ID===it.dataset.id)[0]; if(!s) return;
+  const canEdit=user().role==='Admin';
   openSheet('<h2 style="margin-top:0">'+esc(s.Full_Name)+'</h2><dl class="kv">'+
     '<dt>Staff ID</dt><dd>'+esc(s.Staff_ID)+'</dd><dt>Role</dt><dd>'+esc(s.Role||'-')+'</dd>'+
     '<dt>Class</dt><dd>'+esc(s.Class_Assigned||'-')+'</dd><dt>Subjects</dt><dd>'+esc(s.Subjects_Taught||'-')+'</dd>'+
     '<dt>Phone</dt><dd>'+esc(s.Phone||'-')+'</dd><dt>Email</dt><dd>'+esc(s.Email||'-')+'</dd>'+
     '<dt>Qualification</dt><dd>'+esc(s.Qualification||'-')+'</dd><dt>Employed</dt><dd>'+esc(s.Date_Employed||'-')+'</dd>'+
-    '<dt>Status</dt><dd>'+esc(s.Status||'-')+'</dd></dl>');
+    '<dt>Status</dt><dd>'+esc(s.Status||'-')+'</dd></dl>'+
+    (canEdit?'<button class="btn" id="stEdit">Edit this staff member</button>':''));
+  if(canEdit) $('#stEdit').onclick=function(){ staffForm(s); };
 });
+$('#stAdd').onclick=function(){ if(user().role!=='Admin') return toast('Only an admin can add staff'); staffForm(null); };
+const STAFF_FIELDS=[['Full_Name','text'],['Gender','Gender'],['Phone','tel'],['Email','email'],['Role','Staff_Role'],
+  ['Class_Assigned','Grade_Level'],['Subjects_Taught','text'],['Qualification','text'],['Date_Employed','date'],['Status','Staff_Status'],['Notes','text']];
+function staffForm(s){
+  s=s||{};
+  openSheet('<h2 style="margin-top:0">'+(s.Staff_ID?'Edit '+esc(s.Full_Name):'Add staff')+'</h2>'+
+    (s.Staff_ID?'<p class="hint">Staff ID '+esc(s.Staff_ID)+'</p>':'<p class="hint">The staff ID is created automatically.</p>')+
+    STAFF_FIELDS.map(function(f){
+      const label=f[0].replace(/_/g,' '), v=esc(s[f[0]]||'');
+      if(lists()[f[1]]) return '<label class="field"><span>'+label+'</span><select name="st_'+f[0]+'"><option value=""></option>'+(lists()[f[1]]||[]).map(x=>'<option '+(String(s[f[0]])===String(x)?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>';
+      return '<label class="field"><span>'+label+'</span><input type="'+f[1]+'" name="st_'+f[0]+'" value="'+v+'"></label>';
+    }).join('')+
+    '<button class="btn" id="stSave">Save staff</button>');
+  $('#stSave').onclick=function(){
+    const rec={}; STAFF_FIELDS.forEach(function(f){ const el=$('#sheetPanel [name=st_'+f[0]+']'); rec[f[0]]=el?el.value.trim():''; });
+    if(!rec.Full_Name) return toast('Full name is required');
+    if(rec.Phone && !phoneOk(rec.Phone)) return toast('Phone must be 11 to 15 digits');
+    if(rec.Email && !emailOk(rec.Email)) return toast('Enter a valid email address');
+    if(s.Staff_ID) rec.Staff_ID=s.Staff_ID;
+    enqueue('saveStaff',[rec],(s.Staff_ID?'Update staff - ':'Add staff - ')+rec.Full_Name);
+    // reflect locally straight away
+    data.staff=data.staff||[];
+    const i=data.staff.findIndex(x=>x.Staff_ID===s.Staff_ID);
+    if(i>=0) data.staff[i]=Object.assign({},data.staff[i],rec); else data.staff.push(Object.assign({Staff_ID:'(new)'},rec));
+    DB.set('data',data); closeSheet(); renderStaff();
+    toast(navigator.onLine?'Saved, sending':'Saved on this device');
+  };
+}
 
 /* ---------------------------------------------------------------- sync screen */
 function renderQueue(){
@@ -1116,7 +1168,7 @@ $('#changeApi').onclick=function(){
   $('#apiSave').onclick=async function(){
     const u=$('#apiNew').value.trim(); if(!u) return toast('Paste a URL');
     const old=cfg.apiUrl; cfg.apiUrl=u; DB.set('cfg',cfg);
-    try{ const v=await api('portalVersion',[]); closeSheet(); toast('Connected. Backend version '+v.version,5000); sync(); }
+    try{ const v=await api('portalVersion',[]); closeSheet(); toast('Connected. Refreshing data...',4000); await refreshData(); toast('Connected. Backend version '+v.version,5000); sync(); }
     catch(e){ cfg.apiUrl=old; DB.set('cfg',cfg); toast('That address did not work: '+e.message,6000); }
   };
 };
@@ -1124,12 +1176,17 @@ $('#testConn').onclick=async function(){
   if(!navigator.onLine) return toast('No connection');
   try{
     const v = await api('portalVersion',[]);
+    if(!data || data.portalVersion !== v.version){ await refreshData(); }
+    const missing = missingFunctions(v);
     openSheet('<h2 style="margin-top:0">Connection test</h2><dl class="kv">'+
       '<dt>Portal address</dt><dd style="word-break:break-all">'+esc(cfg.apiUrl)+'</dd>'+
-      '<dt>Backend version</dt><dd><b>'+esc(v.version)+'</b>'+(v.version==='2026-09-12-v5'?' <span class="tag">current</span>':' <span class="tag err">OUT OF DATE</span>')+'</dd>'+
+      '<dt>Backend version</dt><dd><b>'+esc(v.version)+'</b>'+(missing.length?' <span class="tag err">OUT OF DATE</span>':' <span class="tag">compatible</span>')+'</dd>'+
       '<dt>Sync_Log tab</dt><dd>'+(v.syncTabExists?'exists':'<span class="tag err">missing</span>')+'</dd>'+
-      '<dt>Functions available</dt><dd>'+v.functions+'</dd></dl>'+
-      (v.version==='2026-09-12-v5'?'<p class="note">The database is up to date. Tap <b>Send now</b> to push the waiting entries.</p>':'<p class="note warn">The deployed web app is running old code. In Apps Script: Deploy &rarr; Manage deployments &rarr; pencil &rarr; Version: <b>New version</b> &rarr; Deploy.</p>'));
+      '<dt>Functions available</dt><dd>'+v.functions+'</dd>'+
+      '<dt>Cached data</dt><dd>'+((data.students||[]).length)+' students, '+((data.staff||[]).length)+' staff, '+((data.fees||[]).length)+' fee rows</dd></dl>'+
+      (missing.length
+        ? '<p class="note warn">The deployed web app is missing: <b>'+esc(missing.join(', '))+'</b>. In Apps Script: Deploy &rarr; Manage deployments &rarr; pencil &rarr; Version: <b>New version</b> &rarr; Deploy.</p>'
+        : '<p class="note">Everything the app needs is available.</p>'));
   }catch(e){
     openSheet('<h2 style="margin-top:0">Connection test</h2><p class="note err">'+esc(e.message)+'</p>'+
       (/Unknown function/.test(e.message)? '<p class="note warn">The deployed web app is running code from before this version. In Apps Script: Deploy &rarr; Manage deployments &rarr; pencil icon &rarr; Version: <b>New version</b> &rarr; Deploy. Saving the file is not enough.</p>':''));
@@ -1203,7 +1260,19 @@ function versionBanner(){
 function showApp(){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#whoami').textContent = user().name+' '+user().role+(user().classAssigned?' '+user().classAssigned:'');
-  buildNav(); buildSelects(); renderStudents(); renderQueue(); versionBanner(); sync();
+  buildNav(); buildSelects(); renderStudents(); renderQueue(); versionBanner(); sync(); autoRefresh();
+}
+const NEEDED_FUNCTIONS=['bootstrap','getStudentHistory','getStaff','saveStaff','getRecentPayments','getBillingRows','getAuditLog','addListValue','saveBillFlags','generateBills','recordPayment','saveScores','saveAttendance','getReportCard','saveReportCardComments','getAnalytics'];
+function missingFunctions(v){ const have=(v&&v.functionList)||[]; if(!have.length) return []; return NEEDED_FUNCTIONS.filter(f=>have.indexOf(f)<0); }
+async function autoRefresh(){
+  if(!navigator.onLine || !cfg || !cfg.token) return;
+  try{
+    const v = await api('portalVersion',[]);
+    if(!data || data.portalVersion !== v.version || !data.optionalItems || !data.staff || !data.fees){
+      await refreshData();
+      toast('Data refreshed from the database');
+    }
+  }catch(e){ /* offline or old backend: the banner already explains */ }
 }
 (function init(){
   if('serviceWorker' in navigator){
