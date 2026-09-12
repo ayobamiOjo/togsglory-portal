@@ -9,21 +9,21 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{
-  --green:#12331F; --leaf:#2E7D4F; --paper:#FBFBF8; --ink:#14201A; --ink-2:#4A5A50;
-  --mist:#E6EEE8; --line:#CFDAD2; --amber:#B7791F; --amber-bg:#FBF3E4; --red:#B3261E; --red-bg:#FBECEA;
-  --r:10px; --tap:44px;
+  --green:#12331F; --green-2:#1B4D2E; --leaf:#2E7D4F; --paper:#F4F6F3; --card:#fff; --ink:#14201A; --ink-2:#5B6B60;
+  --mist:#E8F0EA; --line:#DCE4DD; --amber:#9A6510; --amber-bg:#FCF3E3; --red:#A72016; --red-bg:#FBEBE9; --ok:#1B7A45; --ok-bg:#E3F3E9;
+  --r:14px; --tap:44px; --shadow:0 1px 2px rgba(20,32,26,.06), 0 6px 18px rgba(20,32,26,.05);
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,sans-serif}
 button,input,select,textarea{font:inherit;color:inherit}
-h1{font-size:21px;margin:0 0 4px;font-weight:650}
+h1{font-size:22px;margin:0 0 12px;font-weight:680;letter-spacing:-.01em}
 h2{font-size:16px;margin:22px 0 8px;font-weight:650}
 h3{font-size:14px;margin:14px 0 6px;font-weight:650;color:var(--ink-2)}
 p{margin:0 0 10px}
 a{color:var(--leaf)}
 .hidden{display:none!important}
 
-.top{position:sticky;top:0;z-index:5;background:var(--green);color:#fff;padding:10px 14px calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px}
+.top{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,var(--green-2),var(--green));color:#fff;padding:10px 14px calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px}
 .top img{width:34px;height:34px;border-radius:8px;background:#fff;object-fit:contain;flex:none}
 .top b{font-weight:650;letter-spacing:.2px;font-size:15px;display:block}
 .top small{display:block;opacity:.85;font-size:12px}
@@ -34,7 +34,7 @@ a{color:var(--leaf)}
 main{padding:16px 16px calc(88px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
 .screen{display:none}.screen.on{display:block}
 
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:5}
 nav button{flex:1;background:none;border:0;padding:8px 2px 10px;font-size:11px;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;gap:3px;min-height:56px}
 nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav button.on{color:var(--green);font-weight:650}
@@ -59,17 +59,18 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid #
 .bar{display:flex;gap:10px;align-items:center;margin:10px 0 14px;flex-wrap:wrap}
 .bar input[type=search]{flex:1;min-width:170px}
 
-.item{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:center}
+.item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:9px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow)}
+.item.tap:active{transform:scale(.995)}
 .item.tap{cursor:pointer}
 .av{width:42px;height:42px;border-radius:50%;background:var(--mist);color:var(--green);display:flex;align-items:center;justify-content:center;font-weight:650;flex:none;overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover}
 .av.big{width:72px;height:72px;font-size:22px}
 .item .t{flex:1;min-width:0}.item .t small{color:var(--ink-2);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tag{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--mist);color:var(--green);white-space:nowrap}
+.tag{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--ok-bg);color:var(--ok);white-space:nowrap;font-weight:600}
 .tag.pend{background:var(--amber-bg);color:var(--amber)}.tag.err{background:var(--red-bg);color:var(--red)}
 .tag.off{background:#EEE;color:#666}
 
-details{border:1px solid var(--line);border-radius:var(--r);background:#fff;margin-bottom:10px}
+details{border:1px solid var(--line);border-radius:var(--r);background:var(--card);margin-bottom:10px;box-shadow:var(--shadow)}
 details summary{padding:12px 14px;cursor:pointer;font-weight:650;list-style:none;display:flex;align-items:center}
 details summary::-webkit-details-marker{display:none}
 details summary::after{content:"+";margin-left:auto;color:var(--ink-2)}details[open] summary::after{content:"\2013"}
@@ -79,9 +80,10 @@ details .body{padding:0 14px 6px}
 .note.warn{background:var(--amber-bg)}.note.err{background:var(--red-bg)}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0 0 10px}
 .kv dt{color:var(--ink-2)}.kv dd{margin:0}
-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line)}
+table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+tr:last-child td{border-bottom:0}
 th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:14px;vertical-align:middle}
-th{background:var(--mist);font-weight:650}
+th{background:var(--mist);font-weight:650;font-size:12.5px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
 td.num,th.num{text-align:right}
 td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
 .scroll{overflow-x:auto}
@@ -91,7 +93,7 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
 .checks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .checks label{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:13px;min-height:44px}
 .checks input{width:18px;height:18px;flex:none}
-.stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;box-shadow:var(--shadow)}
 .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:8px}
 .stat b{display:block;font-size:23px;font-weight:650;line-height:1.15}
 .stat small{color:var(--ink-2)}
@@ -105,7 +107,42 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
 .sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:8;display:flex;align-items:flex-end}
 .sheet .panel{background:#fff;width:100%;max-height:82vh;border-radius:16px 16px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));overflow:auto}
 @media (min-width:560px){.sheet{align-items:center;justify-content:center}.sheet .panel{max-width:520px;border-radius:16px}}
-@media print{.top,nav,.noprint{display:none!important}main{padding:0}}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:8px 14px;min-height:38px;font-size:13px;color:var(--ink-2)}
+.seg button.on{background:var(--green);color:#fff;font-weight:650}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;text-align:center;box-shadow:var(--shadow);cursor:pointer}
+.pcard .av{margin:0 auto 9px;width:60px;height:60px}
+.pcard b{display:block;font-size:14px;font-weight:650;line-height:1.25}
+.pcard small{color:var(--ink-2);font-size:12px}
+.billhead{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px;min-height:36px}
+.chip.on{background:var(--green);color:#fff;border-color:var(--green)}
+.rc{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)}
+.rc table{font-size:13px}.rc td:last-child,.rc th:last-child{white-space:normal;min-width:150px}
+.rc-head{display:flex;gap:14px;align-items:center;border-bottom:2px solid var(--green);padding-bottom:14px;margin-bottom:16px}
+.rc-head img{width:66px;height:66px;object-fit:contain;flex:none}
+.rc-head h2{margin:0;font-size:19px;color:var(--green);letter-spacing:-.01em}
+.rc-head p{margin:2px 0 0;font-size:12px;color:var(--ink-2)}
+.rc-banner{background:var(--green);color:#fff;text-align:center;padding:7px;border-radius:8px;font-size:12.5px;font-weight:650;letter-spacing:.06em;margin-bottom:16px}
+.rc-strip{background:var(--mist);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.rc-strip div small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2)}
+.rc-strip div b{font-size:14px}
+.rc-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;background:var(--mist);border-radius:10px;padding:12px 14px;margin:14px 0;text-align:center}
+.rc-sum small{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2)}
+.rc-sum b{font-size:19px;color:var(--green)}
+.traits{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.traits div{border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center;font-size:12px}
+.traits div b{display:block;font-size:13px}
+.remarks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+@media (max-width:560px){.remarks{grid-template-columns:1fr}}
+.remark-box{border:1px solid var(--line);border-radius:10px;padding:12px}
+.remark-box h4{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2)}
+.grade-pill{display:inline-block;min-width:26px;text-align:center;padding:2px 7px;border-radius:6px;background:var(--ok-bg);color:var(--ok);font-weight:650}
+.grade-pill.low{background:var(--red-bg);color:var(--red)}
+.traits div b.noscreen{display:none}
+@media print{.traits div b.noscreen{display:block}.traits div select{display:none}}
+@media print{.top,nav,.noprint{display:none!important}main{padding:0;max-width:none}.rc{border:0;box-shadow:none;padding:0}}
 </style>
 </head>
 <body>
@@ -114,6 +151,7 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
   <main class="login">
     <img src="logo.png" alt="TOGSGLORY Nursery and Primary School">
     <h1>School portal</h1>
+    <p style="color:var(--ink-2);margin-top:-6px">Building strong foundations for lifelong learning</p>
     <p>Sign in once while online. After that the app works without a connection and sends your entries when the network returns.</p>
     <label class="field"><span>Portal address (from the school admin)</span><input type="text" id="apiUrl" placeholder="https://script.google.com/macros/s/.../exec"></label>
     <label class="field"><span>Your email</span><input type="email" id="loginEmail" autocomplete="username"></label>
@@ -137,6 +175,7 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
         <input type="search" id="q" placeholder="Search name, ID, guardian, phone">
         <select id="fClass"><option value="">All classes</option></select>
         <select id="fStatus"><option value="">All statuses</option></select>
+        <div class="seg" id="viewToggle"><button data-v="list" class="on">List</button><button data-v="cards">Cards</button></div>
       </div>
       <div id="studentList"></div>
     </section>
@@ -187,7 +226,8 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
         <img id="payReceiptPreview" class="thumb hidden" alt="">
         <button class="btn" id="paySave">Save payment</button>
       </div>
-      <h2>Payments entered on this device</h2>
+      <h2>Recent payments</h2>
+      <div class="bar noprint"><div class="seg" id="payHistToggle"><button data-v="device" class="on">This device</button><button data-v="all">All (school)</button></div><button class="btn quiet sm" id="payRefresh">Refresh</button></div>
       <div id="payList"></div>
     </section>
 
@@ -197,8 +237,14 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
         <label class="field"><span>Session</span><select id="blSession"></select></label>
         <label class="field"><span>Term</span><select id="blTerm"></select></label>
       </div>
-      <p class="note">Compulsory fees are charged to every student automatically. Tick only the extras each student takes. Amounts come from the fee list stored on this device; the school database confirms them when the entry is sent.</p>
-      <div class="bar"><input type="search" id="blSearch" placeholder="Search student"><button class="btn quiet sm" id="blGenerate">Create bills for everyone</button></div>
+      <div class="billhead" id="blTotals"></div>
+      <div class="bar">
+        <input type="search" id="blSearch" placeholder="Search student or ID">
+        <div class="seg" id="blFilter"><button data-v="" class="on">All</button><button data-v="Owing">Owing</button><button data-v="Part Payment">Part</button><button data-v="Paid">Paid</button></div>
+        <button class="btn sm" id="blGenerate">Generate term bills</button>
+        <button class="btn quiet sm" id="blRefresh">Refresh</button>
+      </div>
+      <p class="hint">Compulsory fees apply to everyone. Tick the extras each pupil takes, then Save. Due, paid and balance come from the school database.</p>
       <div id="billList"></div>
     </section>
 
@@ -253,6 +299,19 @@ td input[type=number]{width:64px;min-height:38px;padding:6px;text-align:center}
       <h1>Staff</h1>
       <div class="bar"><input type="search" id="stSearch" placeholder="Search name, role, class"></div>
       <div id="staffList"></div>
+    </section>
+
+    <section class="screen" id="s-audit">
+      <h1>Audit log</h1>
+      <p class="hint">Every change made through the portal, newest first.</p>
+      <button class="btn quiet sm" id="auditLoad" style="margin-bottom:12px">Refresh</button>
+      <div id="auditBody"></div>
+    </section>
+
+    <section class="screen" id="s-listvals">
+      <h1>Lists and values</h1>
+      <div id="listNames" class="bar"></div>
+      <div id="listValues"></div>
     </section>
 
     <section class="screen" id="s-more">
@@ -477,13 +536,23 @@ function renderStudents(){
   if(fc) rows=rows.filter(s=>s.Grade_Level===fc);
   if(fs) rows=rows.filter(s=>s.Enrollment_Status===fs);
   if(q) rows=rows.filter(s=>['Student_ID','First_Name','Middle_Name','Last_Name','Guardian1_Full_Name','Guardian2_Full_Name','Guardian1_Phone','Guardian2_Phone','Grade_Level'].some(f=>String(s[f]||'').toLowerCase().indexOf(q)>=0));
-  $('#studentList').innerHTML = rows.length? rows.slice(0,300).map(s=>'<div class="item tap" data-id="'+esc(s.Student_ID)+'">'+avatar(s)+
-    '<div class="t"><div>'+esc(fullName(s))+'</div><small>'+esc(s.Grade_Level||'')+' &middot; '+(isTmp(s.Student_ID)?'Waiting for ID':esc(s.Student_ID))+(s.Guardian1_Phone?' &middot; '+esc(s.Guardian1_Phone):'')+'</small></div>'+
-    (s._local?'<span class="tag pend">Not sent</span>':'<span class="tag '+(s.Enrollment_Status==='Active'?'':'off')+'">'+esc(s.Enrollment_Status||'')+'</span>')+'</div>').join('')
-    : '<div class="empty">No students match.</div>';
+  if(!rows.length){ $('#studentList').innerHTML='<div class="empty">No students match.</div>'; return; }
+  const shown=rows.slice(0,300);
+  if(studentView==='cards'){
+    $('#studentList').innerHTML='<div class="cards">'+shown.map(s=>'<div class="pcard" data-id="'+esc(s.Student_ID)+'">'+avatar(s)+
+      '<b>'+esc(fullName(s))+'</b><small>'+esc(s.Grade_Level||'')+'</small><div style="margin-top:7px">'+
+      (s._local?'<span class="tag pend">Not sent</span>':'<span class="tag '+(s.Enrollment_Status==='Active'?'':'off')+'">'+esc(s.Enrollment_Status||'')+'</span>')+'</div></div>').join('')+'</div>';
+  } else {
+    $('#studentList').innerHTML=shown.map(s=>'<div class="item tap" data-id="'+esc(s.Student_ID)+'">'+avatar(s)+
+      '<div class="t"><div>'+esc(fullName(s))+'</div><small>'+esc(s.Grade_Level||'')+' &middot; '+(isTmp(s.Student_ID)?'Waiting for ID':esc(s.Student_ID))+(s.Guardian1_Phone?' &middot; '+esc(s.Guardian1_Phone):'')+'</small></div>'+
+      (s._local?'<span class="tag pend">Not sent</span>':'<span class="tag '+(s.Enrollment_Status==='Active'?'':'off')+'">'+esc(s.Enrollment_Status||'')+'</span>')+'</div>').join('');
+  }
 }
 ['#q','#fClass','#fStatus'].forEach(s=>$(s).addEventListener('input',renderStudents));
-$('#studentList').addEventListener('click', e=>{ const it=e.target.closest('.item'); if(it) openProfile(it.dataset.id); });
+let studentView=DB.get('studentView','list');
+$('#viewToggle').addEventListener('click',function(e){ const b=e.target.closest('button'); if(!b) return; studentView=b.dataset.v; DB.set('studentView',studentView);
+  $$('#viewToggle button').forEach(x=>x.classList.toggle('on',x.dataset.v===studentView)); renderStudents(); });
+$('#studentList').addEventListener('click', e=>{ const it=e.target.closest('.item,.pcard'); if(it) openProfile(it.dataset.id); });
 
 /* ---------------------------------------------------------------- profile */
 async function openProfile(id){
@@ -675,10 +744,21 @@ function savePayment(){
   $('#payReceiptPreview').classList.add('hidden'); $('#payReceiptNote').textContent='Optional photo of the slip.';
   toast(navigator.onLine?'Payment saved, receipt number comes back after sending':'Payment saved on this device'); renderPayList();
 }
+let payHist='device', serverPayments=null;
 function renderPayList(){
+  if(!$('#payList')) return;
+  if(payHist==='all'){
+    if(!serverPayments){ $('#payList').innerHTML='<div class="empty">'+(navigator.onLine?'Tap Refresh to load the school payment history.':'Needs a connection.')+'</div>'; return; }
+    $('#payList').innerHTML = serverPayments.length? serverPayments.map(p=>'<div class="item"><div class="t"><div>'+naira(p.Amount_Paid)+' - '+esc(p.Student_Name||p.Student_ID)+'</div><small>'+esc(p.Date_of_Payment)+' &middot; '+esc(p.Receipt_No)+' &middot; '+esc(p.Session||'')+' '+esc(p.Term||'')+' &middot; '+esc(p.Payment_Method||'')+'</small></div>'+(p.Receipt_File_URL?'<a class="btn quiet sm" href="'+esc(p.Receipt_File_URL)+'" target="_blank" rel="noopener">Slip</a>':'')+'</div>').join('') : '<div class="empty">No payments recorded yet.</div>';
+    return;
+  }
   const rows=queue.filter(o=>o.fn==='recordPayment').concat(done.filter(o=>o.fn==='recordPayment')).slice(0,30);
   $('#payList').innerHTML = rows.length? rows.map(o=>'<div class="item"><div class="t"><div>'+esc(o.label)+'</div><small>'+(o.result?'Receipt '+esc(o.result.Receipt_No)+' &middot; balance '+naira(o.result.balance):(o.error?esc(o.error):'Waiting to send'))+'</small></div>'+(o.result?'<span class="tag">Sent</span>':'<span class="tag '+(o.error?'err':'pend')+'">'+(o.error?'Check':'Waiting')+'</span>')+'</div>').join('')
     : '<div class="empty">No payments yet on this device.</div>';
+}
+async function loadServerPayments(){
+  if(!navigator.onLine) return toast('No connection');
+  try{ serverPayments = await api('getRecentPayments',[60]); renderPayList(); }catch(e){ toast(e.message,4000); }
 }
 
 function chooseReceipt(maxSize, cb){
@@ -688,30 +768,59 @@ function chooseReceipt(maxSize, cb){
 }
 
 /* ---------------------------------------------------------------- billing */
-let billFlags={};
+let billFlags={}, billRows=null, blFilter='';
 function billKey(id){ return id+'|'+$('#blSession').value+'|'+$('#blTerm').value; }
+function billRowFor(id){ return (billRows||[]).filter(b=>b.Student_ID===id)[0]; }
+function shortItem(it){ return it.replace(/\(.*\)/,'').replace('Wednesday Wear','Wed. Wear').replace('Coding & Robotics','Coding').replace('Friday Wear','Fri. Wear').trim(); }
+async function loadBilling(){
+  if(!navigator.onLine){ billRows=null; renderBilling(); return; }
+  try{ billRows = await api('getBillingRows',[$('#blSession').value,$('#blTerm').value]);
+    (billRows||[]).forEach(function(b){ const k=b.Student_ID+'|'+b.Session+'|'+b.Term; billFlags[k]=billFlags[k]||{};
+      optItems().forEach(function(it){ if(billFlags[k][it]===undefined) billFlags[k][it] = Number(b[it+' (1=yes)']||0)===1; }); });
+    renderBilling();
+  }catch(e){ toast(e.message,4000); }
+}
 function renderBilling(){
-  if(['Admin','Bursar'].indexOf(user().role)<0){ $('#billList').innerHTML='<p class="note">Your role can view fees on a student profile, but not change bills.</p>'; return; }
+  if(['Admin','Bursar'].indexOf(user().role)<0){ $('#billList').innerHTML='<p class="note">Your role can view fees on a student profile, but not change bills.</p>'; $('#blTotals').innerHTML=''; return; }
   const q=$('#blSearch').value.trim().toLowerCase(), ses=$('#blSession').value, term=$('#blTerm').value;
   let rows=students().filter(s=>s.Enrollment_Status==='Active' && !isTmp(s.Student_ID));
   if(q) rows=rows.filter(s=>[s.Student_ID,fullName(s)].some(f=>String(f||'').toLowerCase().indexOf(q)>=0));
-  $('#billList').innerHTML = rows.length? rows.slice(0,60).map(function(s){
-    const fee=feeRow(ses,s.Grade_Level,term), key=billKey(s.Student_ID), flags=billFlags[key]||{};
+  if(blFilter) rows=rows.filter(s=>{ const b=billRowFor(s.Student_ID); return b && b.Status===blFilter; });
+  // totals
+  const all=(billRows||[]);
+  const billed=all.reduce((a,b)=>a+Number(b.Grand_Total_Due||0),0), paid=all.reduce((a,b)=>a+Number(b.Amount_Paid||0),0);
+  const cnt=function(st){ return all.filter(b=>b.Status===st).length; };
+  $('#blTotals').innerHTML = billRows? '<div class="stat"><b>'+naira(billed)+'</b><small>Total billed &middot; '+all.length+' pupils</small></div>'+
+      '<div class="stat"><b style="color:var(--ok)">'+naira(paid)+'</b><small>Collected'+(billed?' &middot; '+Math.round(paid/billed*100)+'%':'')+'</small></div>'+
+      '<div class="stat"><b style="color:var(--red)">'+naira(billed-paid)+'</b><small>Outstanding</small></div>'+
+      '<div class="stat"><b>'+cnt('Paid')+' / '+cnt('Part Payment')+' / '+cnt('Owing')+'</b><small>Paid / Part / Owing</small></div>'
+    : '<div class="stat"><b>Offline</b><small>Totals need a connection. Ticking items still works.</small></div>';
+  if(!rows.length){ $('#billList').innerHTML='<div class="empty">'+(blFilter?'No pupils with that status.':'No active students.')+'</div>'; return; }
+  const items=optItems();
+  const head='<tr><th>Student</th>'+items.map(it=>'<th class="num" title="'+esc(it)+'">'+esc(shortItem(it))+'</th>').join('')+'<th class="num">Compulsory</th><th class="num">Extras</th><th class="num">Total due</th><th class="num">Paid</th><th class="num">Balance</th><th>Status</th></tr>';
+  const body=rows.slice(0,120).map(function(s){
+    const fee=feeRow(ses,s.Grade_Level,term), key=billKey(s.Student_ID), flags=billFlags[key]||{}, b=billRowFor(s.Student_ID)||{};
     const mand=fee?Number(fee.Mandatory_Total||0):0;
-    const opt=optItems().reduce(function(a,it){ return a+(flags[it]?Number((fee||{})[it]||0):0); },0);
-    return '<details data-id="'+esc(s.Student_ID)+'"><summary>'+esc(fullName(s))+' - '+naira(mand+opt)+'</summary><div class="body">'+
-      '<p class="hint">'+esc(s.Grade_Level||'')+' &middot; compulsory '+naira(mand)+(fee?'':' - no fee row for this class and term')+'</p>'+
-      '<div class="checks">'+optItems().map(it=>'<label><input type="checkbox" data-item="'+esc(it)+'" '+(flags[it]?'checked':'')+'> <span>'+esc(it)+'<br><small>'+naira((fee||{})[it]||0)+'</small></span></label>').join('')+'</div>'+
-      '<div class="row" style="margin-top:10px"><button class="btn sm" data-save="'+esc(s.Student_ID)+'">Save items</button></div></div></details>';
-  }).join('') : '<div class="empty">No active students.</div>';
+    const opt=items.reduce(function(a,it){ return a+(flags[it]?Number((fee||{})[it]||0):0); },0);
+    const due = b.Grand_Total_Due!==undefined? Number(b.Grand_Total_Due) : mand+opt;
+    const pd = Number(b.Amount_Paid||0), bal=due-pd;
+    const st = b.Status || (bal<=0&&due>0?'Paid':(pd>0?'Part Payment':'Owing'));
+    return '<tr data-id="'+esc(s.Student_ID)+'"><td><b>'+esc(fullName(s))+'</b><br><small style="color:var(--ink-2)">'+esc(s.Student_ID)+' &middot; '+esc(s.Grade_Level||'')+'</small></td>'+
+      items.map(function(it){ return '<td class="num"><input type="checkbox" data-item="'+esc(it)+'" '+(flags[it]?'checked':'')+' style="width:18px;height:18px"></td>'; }).join('')+
+      '<td class="num">'+naira(mand)+'</td><td class="num" data-opt>'+naira(opt)+'</td><td class="num"><b>'+naira(due)+'</b></td><td class="num">'+naira(pd)+'</td>'+
+      '<td class="num" style="color:'+(bal>0?'var(--red)':'var(--ok)')+'">'+naira(bal)+'</td>'+
+      '<td><span class="tag '+(st==='Paid'?'':(st==='Owing'?'err':'pend'))+'">'+esc(st)+'</span><br><button class="btn sm" data-save="'+esc(s.Student_ID)+'" style="margin-top:6px">Save</button></td></tr>';
+  }).join('');
+  $('#billList').innerHTML='<div class="scroll"><table>'+head+body+'</table></div>'+(rows.length>120?'<div class="empty">Showing first 120.</div>':'');
 }
 $('#billList').addEventListener('change',function(e){
   const cb=e.target.closest('[data-item]'); if(!cb) return;
-  const det=cb.closest('details'), id=det.dataset.id, key=billKey(id);
+  const tr=cb.closest('tr'), id=tr.dataset.id, key=billKey(id);
   billFlags[key]=billFlags[key]||{}; billFlags[key][cb.dataset.item]=cb.checked;
   const s=students().filter(x=>x.Student_ID===id)[0], fee=feeRow($('#blSession').value,s.Grade_Level,$('#blTerm').value);
   const opt=optItems().reduce(function(a,it){ return a+(billFlags[key][it]?Number((fee||{})[it]||0):0); },0);
-  det.querySelector('summary').textContent = fullName(s)+' - '+naira(Number((fee||{}).Mandatory_Total||0)+opt);
+  tr.querySelector('[data-opt]').textContent=naira(opt);
+  tr.querySelector('[data-save]').classList.remove('quiet');
 });
 $('#billList').addEventListener('click',function(e){
   const b=e.target.closest('[data-save]'); if(!b) return;
@@ -719,12 +828,16 @@ $('#billList').addEventListener('click',function(e){
   enqueue('saveBillFlags',[{Student_ID:id, Session:$('#blSession').value, Term:$('#blTerm').value, items:billFlags[key]||{}}], 'Bill items - '+fullName(s)+' ('+$('#blTerm').value+')', {studentId:id});
   toast(navigator.onLine?'Saved, sending':'Saved on this device');
 });
+$('#blFilter').addEventListener('click',function(e){ const b=e.target.closest('button'); if(!b) return; blFilter=b.dataset.v;
+  $$('#blFilter button').forEach(x=>x.classList.toggle('on',x.dataset.v===blFilter)); renderBilling(); });
 $('#blGenerate').onclick=function(){
   if(!confirm('Create a bill row for every active student for '+$('#blSession').value+' '+$('#blTerm').value+'? Students who already have one are skipped.')) return;
   enqueue('generateBills',[$('#blSession').value,$('#blTerm').value],'Create bills - '+$('#blSession').value+' '+$('#blTerm').value);
-  toast(navigator.onLine?'Sending':'Queued, will run when online');
+  toast(navigator.onLine?'Sending, then tap Refresh':'Queued, will run when online');
 };
-['#blSession','#blTerm','#blSearch'].forEach(s=>$(s).addEventListener('input',renderBilling));
+$('#blRefresh').onclick=loadBilling;
+['#blSession','#blTerm'].forEach(s=>$(s).addEventListener('change',loadBilling));
+$('#blSearch').addEventListener('input',renderBilling);
 
 /* ---------------------------------------------------------------- scores */
 function refreshSubjects(){
@@ -734,12 +847,44 @@ function refreshSubjects(){
     return lg==='All Primary'||(lg==='Primary 1-3'&&n<=3)||(lg==='Primary 4-6'&&n>=4); }).map(s=>s.Subject_Name);
   fill('#scSubject',subs); renderScoreGrid();
 }
-$('#scClass').addEventListener('change',refreshSubjects); $('#scSubject').addEventListener('change',renderScoreGrid);
-function renderScoreGrid(){
-  const rows=classStudents($('#scClass').value);
-  $('#scoreGrid').innerHTML = rows.length? '<table><tr><th>Student</th><th class="num">CA 1</th><th class="num">CA 2</th><th class="num">Exam</th></tr>'+rows.map(s=>'<tr data-id="'+esc(s.Student_ID)+'"><td>'+esc(fullName(s))+'</td><td><input type="number" min="0" max="20" data-f="CA1"></td><td><input type="number" min="0" max="20" data-f="CA2"></td><td><input type="number" min="0" max="60" data-f="Exam"></td></tr>').join('')+'</table>'
-    : '<div class="empty">No active students in this class on this device.</div>';
+$('#scClass').addEventListener('change',refreshSubjects); $('#scSubject').addEventListener('change',loadScores);
+['#scSession','#scTerm'].forEach(x=>$(x).addEventListener('change',loadScores));
+function gradeFor(total){
+  const bands=(data.bands||[]).slice().sort((a,b)=>Number(b.Min_Score)-Number(a.Min_Score));
+  for(let i=0;i<bands.length;i++){ if(total>=Number(bands[i].Min_Score)) return {g:bands[i].Grade, r:bands[i].Remark||''}; }
+  return {g:'',r:''};
 }
+let scoreCache={};
+function scoreKey(){ return $('#scSession').value+'|'+$('#scTerm').value+'|'+$('#scSubject').value; }
+async function loadScores(){
+  if(!navigator.onLine || !$('#scSubject').value){ renderScoreGrid(); return; }
+  try{ const rows = await api('getScores',[$('#scSession').value,$('#scTerm').value,$('#scClass').value,$('#scSubject').value]);
+    scoreCache[scoreKey()]={}; rows.forEach(r=>scoreCache[scoreKey()][r.Student_ID]=r); renderScoreGrid();
+  }catch(e){ renderScoreGrid(); }
+}
+function renderScoreGrid(){
+  const rows=classStudents($('#scClass').value), cache=scoreCache[scoreKey()]||{};
+  if(!rows.length){ $('#scoreGrid').innerHTML='<div class="empty">No active students in this class on this device.</div>'; return; }
+  $('#scoreGrid').innerHTML='<table><tr><th>Student</th><th class="num">CA 1<br><small>/20</small></th><th class="num">CA 2<br><small>/20</small></th><th class="num">Exam<br><small>/60</small></th><th class="num">Total</th><th>Grade</th><th class="num">Pos</th><th>Teacher remark</th></tr>'+
+    rows.map(function(s){ const c=cache[s.Student_ID]||{};
+      return '<tr data-id="'+esc(s.Student_ID)+'"><td>'+esc(fullName(s))+'</td>'+
+        '<td class="num"><input type="number" min="0" max="20" data-f="CA1" value="'+esc(c['CA_1 (20)']!==undefined?c['CA_1 (20)']:'')+'"></td>'+
+        '<td class="num"><input type="number" min="0" max="20" data-f="CA2" value="'+esc(c['CA_2 (20)']!==undefined?c['CA_2 (20)']:'')+'"></td>'+
+        '<td class="num"><input type="number" min="0" max="60" data-f="Exam" value="'+esc(c['Exam (60)']!==undefined?c['Exam (60)']:'')+'"></td>'+
+        '<td class="num" data-tot>-</td><td data-grade>-</td><td class="num" data-pos>'+esc(c.Position_in_Class||'-')+'</td>'+
+        '<td><input type="text" data-f="comment" placeholder="optional" value="'+esc(c.Teacher_Comment||'')+'" style="min-width:150px"></td></tr>';
+    }).join('')+'</table>';
+  $$('#scoreGrid tr[data-id]').forEach(recalcRow);
+}
+function recalcRow(tr){
+  const g=function(f){ return Number(tr.querySelector('[data-f='+f+']').value||0); };
+  const any=['CA1','CA2','Exam'].some(f=>tr.querySelector('[data-f='+f+']').value!=='');
+  if(!any){ tr.querySelector('[data-tot]').textContent='-'; tr.querySelector('[data-grade]').innerHTML='-'; return; }
+  const t=g('CA1')+g('CA2')+g('Exam'), b=gradeFor(t);
+  tr.querySelector('[data-tot]').innerHTML='<b>'+t+'</b>';
+  tr.querySelector('[data-grade]').innerHTML='<span class="grade-pill'+(t<40?' low':'')+'">'+esc(b.g)+'</span>'+(b.r?'<br><small>'+esc(b.r)+'</small>':'');
+}
+$('#scoreGrid').addEventListener('input',function(e){ const tr=e.target.closest('tr[data-id]'); if(tr) recalcRow(tr); });
 function saveScores(){
   if(['Admin','Teacher','Head Teacher'].indexOf(user().role)<0) return toast('Your role cannot enter scores');
   const subject=$('#scSubject').value; if(!subject) return toast('Choose a subject');
@@ -747,14 +892,14 @@ function saveScores(){
   $$('#scoreGrid tr[data-id]').forEach(function(tr){
     const g=function(f){ return tr.querySelector('[data-f='+f+']').value; };
     if(g('CA1')===''&&g('CA2')===''&&g('Exam')==='') return;
-    const r={Student_ID:tr.dataset.id,CA1:Number(g('CA1')||0),CA2:Number(g('CA2')||0),Exam:Number(g('Exam')||0)};
+    const r={Student_ID:tr.dataset.id,CA1:Number(g('CA1')||0),CA2:Number(g('CA2')||0),Exam:Number(g('Exam')||0),comment:tr.querySelector('[data-f=comment]').value.trim()};
     if(r.CA1>20||r.CA2>20||r.Exam>60||r.CA1<0||r.CA2<0||r.Exam<0) bad=tr.children[0].textContent;
     out.push(r);
   });
   if(bad) return toast('Score out of range for '+bad+' (CA max 20, exam max 60)',4000);
   if(!out.length) return toast('No scores entered');
   enqueue('saveScores',[$('#scSession').value,$('#scTerm').value,subject,out],subject+' scores - '+$('#scClass').value+' ('+out.length+' pupils)');
-  toast(navigator.onLine?'Scores saved, sending':'Scores saved on this device'); renderScoreGrid();
+  toast(navigator.onLine?'Scores saved, sending':'Scores saved on this device');
 }
 
 /* ---------------------------------------------------------------- attendance */
@@ -781,37 +926,104 @@ function refreshRcStudents(){
   $('#rcStudent').innerHTML = rows.map(s=>'<option value="'+esc(s.Student_ID)+'">'+esc(fullName(s))+' - '+esc(s.Grade_Level||'')+'</option>').join('');
 }
 let rc=null;
+const TRAITS=['Punctuality','Neatness','Politeness','Attentiveness','Honesty'];
+const TRAIT_WORD={5:'Excellent',4:'Very Good',3:'Good',2:'Fair',1:'Poor'};
 $('#rcLoad').onclick=async function(){
   if(!navigator.onLine) return toast('Report cards need a connection');
   const id=$('#rcStudent').value; if(!id) return;
   $('#rcBody').innerHTML='<p class="empty">Loading...</p>';
   try{
     rc = await api('getReportCard',[id,$('#rcSession').value,$('#rcTerm').value]);
-    const s=rc.student, scores=rc.scores;
-    const table = scores.length? '<div class="scroll"><table><tr><th>Subject</th><th class="num">CA1</th><th class="num">CA2</th><th class="num">Exam</th><th class="num">Total</th><th>Grade</th><th>Remark</th><th class="num">Pos</th></tr>'+
-      scores.map(r=>'<tr><td>'+esc(r.Subject)+'</td><td class="num">'+esc(r['CA_1 (20)'])+'</td><td class="num">'+esc(r['CA_2 (20)'])+'</td><td class="num">'+esc(r['Exam (60)'])+'</td><td class="num">'+esc(r['Total (100)'])+'</td><td>'+esc(r.Grade||'')+'</td><td>'+esc(r.Remark||'')+'</td><td class="num">'+esc(r.Position_in_Class||'')+'</td></tr>').join('')+'</table></div>'
-      : '<p class="note warn">No scores recorded for this term yet.</p>';
-    $('#rcBody').innerHTML =
-      '<div class="item">'+avatar(s,true)+'<div class="t"><h2 style="margin:0">'+esc(fullName(s))+'</h2><small>'+esc(s.Grade_Level||'')+' &middot; '+esc(rc.session)+' &middot; '+esc(rc.term)+'</small></div></div>'+
-      table+
-      '<dl class="kv" style="margin-top:12px"><dt>Subjects taken</dt><dd>'+rc.subjectsTaken+'</dd><dt>Total score</dt><dd>'+rc.totalScore+'</dd>'+
-      '<dt>Average</dt><dd>'+(rc.average===null?'-':rc.average+'%')+'</dd><dt>Overall grade</dt><dd>'+esc(rc.overallGrade||'-')+'</dd>'+
-      '<dt>Attendance</dt><dd>'+rc.daysPresent+' present of '+rc.daysRecorded+' days recorded</dd></dl>'+
-      '<label class="field"><span>Class teacher comment</span><textarea id="rcClass" '+(rc.canEditClassComment?'':'disabled')+'>'+esc(rc.classTeacherComment)+'</textarea></label>'+
-      '<label class="field"><span>Head teacher comment</span><textarea id="rcHead" '+(rc.canEditHeadComment?'':'disabled')+'>'+esc(rc.headTeacherComment)+'</textarea></label>'+
-      '<label class="field noprint"><span>Next term begins</span><input type="date" id="rcNext" value="'+esc(rc.nextTermBegins||'')+'" '+(rc.canEditHeadComment?'':'disabled')+'></label>'+
-      (rc.canEditHeadComment?'<label class="field noprint" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="rcApprove" style="width:18px;height:18px" '+(rc.approved==='YES'?'checked':'')+'><span style="margin:0">Approved by head teacher</span></label>':'')+
-      ((rc.canEditClassComment||rc.canEditHeadComment)?'<button class="btn noprint" id="rcSave">Save comments</button>':'<p class="hint">Only the class teacher and head teacher can write comments.</p>');
-    const btn=$('#rcSave'); if(btn) btn.onclick=saveComments;
+    renderReportCard();
   }catch(e){ $('#rcBody').innerHTML='<p class="note err">'+esc(e.message)+'</p>'; }
 };
+function renderReportCard(){
+  const s=rc.student, scores=rc.scores, sch=(data.school)||{};
+  const maxMarks=scores.length*100;
+  const rows = scores.length? scores.map(function(r){
+      const t=Number(r['Total (100)']||0);
+      return '<tr><td>'+esc(r.Subject)+'</td><td class="num">'+esc(r['CA_1 (20)'])+'</td><td class="num">'+esc(r['CA_2 (20)'])+'</td><td class="num">'+esc(r['Exam (60)'])+'</td>'+
+        '<td class="num"><b>'+esc(r['Total (100)'])+'</b></td><td><span class="grade-pill'+(t<40?' low':'')+'">'+esc(r.Grade||'')+'</span></td>'+
+        '<td class="num">'+esc(r.Position_in_Class||'')+'</td><td><i style="color:var(--ink-2)">'+esc(r.Teacher_Comment||r.Remark||'')+'</i></td></tr>';
+    }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--ink-2);padding:18px">No scores recorded for this term yet.</td></tr>';
+  const t=rc.traits||{};
+  const canTraits=rc.canEditClassComment;
+  $('#rcBody').innerHTML =
+    '<div class="rc" id="rcSheet">'+
+      '<div class="rc-head"><img src="logo.png" alt=""><div><h2>'+esc(sch.name||'TOGSGLORY NURSERY & PRIMARY SCHOOL')+'</h2>'+
+        '<p>'+esc(sch.tagline||'Building strong foundations for lifelong learning')+'</p>'+
+        '<p>'+esc(sch.address||'')+(sch.phone?' &middot; '+esc(sch.phone):'')+'</p></div></div>'+
+      '<div class="rc-banner">CONTINUOUS ASSESSMENT &amp; TERMINAL REPORT CARD</div>'+
+      '<div class="rc-strip"><div><small>Pupil name</small><b>'+esc(fullName(s))+'</b></div>'+
+        '<div><small>Student ID</small><b>'+esc(s.Student_ID)+'</b></div>'+
+        '<div><small>Class &amp; session</small><b>'+esc(s.Grade_Level||'')+' &middot; '+esc(rc.session)+'</b></div>'+
+        '<div><small>Term</small><b>'+esc(rc.term)+'</b></div>'+
+        '<div><small>Attendance</small><b>'+rc.daysPresent+' / '+rc.daysRecorded+' days</b></div></div>'+
+      '<div class="scroll"><table><tr><th>Subject</th><th class="num">CA 1 (20)</th><th class="num">CA 2 (20)</th><th class="num">Exam (60)</th><th class="num">Total (100)</th><th>Grade</th><th class="num">Pos</th><th>Subject teacher remark</th></tr>'+rows+'</table></div>'+
+      '<div class="rc-sum"><div><small>Total marks</small><b>'+rc.totalScore+(maxMarks?' / '+maxMarks:'')+'</b></div>'+
+        '<div><small>Average</small><b>'+(rc.average===null?'-':rc.average+'%')+'</b></div>'+
+        '<div><small>Overall grade</small><b>'+esc((rc.overallGrade||'-').split(' ')[0])+'</b></div>'+
+        '<div><small>General remark</small><b>'+esc((rc.overallGrade||'-').replace(/^[A-F]\s*[-\u2014]?\s*/,''))+'</b></div></div>'+
+      '<h3 style="margin-top:16px">Affective and behavioural traits</h3>'+
+      '<div class="traits">'+TRAITS.map(function(k){
+        const v=t[k]||'';
+        return '<div><small>'+k+'</small>'+(canTraits
+          ? '<select data-trait="'+k+'" class="noprint" style="min-height:36px;margin-top:4px"><option value=""></option>'+[5,4,3,2,1].map(n=>'<option value="'+n+'" '+(String(v)===String(n)?'selected':'')+'>'+n+' - '+TRAIT_WORD[n]+'</option>').join('')+'</select>'
+          : '')+'<b class="'+(canTraits?'noscreen':'')+'" data-traitview="'+k+'">'+(v?esc(v)+' / 5 ('+esc(TRAIT_WORD[v]||'')+')':'-')+'</b></div>';
+      }).join('')+'</div>'+
+      '<div class="remarks">'+
+        '<div class="remark-box"><h4>Class teacher remark</h4>'+
+          '<textarea id="rcClass" '+(rc.canEditClassComment?'':'disabled')+' style="border:0;padding:0;min-height:64px;background:none">'+esc(rc.classTeacherComment)+'</textarea>'+
+          '<p class="hint" style="margin:6px 0 0">Form teacher: '+esc(teacherFor(s.Grade_Level))+'</p></div>'+
+        '<div class="remark-box"><h4>Proprietress approval</h4>'+
+          '<textarea id="rcHead" '+(rc.canEditProprietressComment?'':'disabled')+' style="border:0;padding:0;min-height:64px;background:none">'+esc(rc.proprietressComment)+'</textarea>'+
+          '<p class="hint" style="margin:6px 0 0">'+(rc.approved==='YES'?'<span class="tag">APPROVED &amp; SEALED</span>':'Not yet approved')+'</p></div>'+
+      '</div>'+
+      '<div class="noprint" style="margin-top:14px">'+
+        (rc.canEditProprietressComment?'<label class="field"><span>Next term begins</span><input type="date" id="rcNext" value="'+esc(rc.nextTermBegins||'')+'"></label>'+
+          '<label class="field" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="rcApprove" style="width:18px;height:18px"'+(rc.approved==='YES'?' checked':'')+'><span style="margin:0">Approved and signed by the proprietress</span></label>':'')+
+        ((rc.canEditClassComment||rc.canEditProprietressComment)?'<button class="btn" id="rcSave">Save remarks</button>':'<p class="hint">Only the class teacher and the proprietress can write remarks.</p>')+
+      '</div>'+
+      (rc.nextTermBegins?'<p class="hint" style="margin-top:12px">Next term begins: '+esc(rc.nextTermBegins)+'</p>':'')+
+    '</div>';
+  const btn=$('#rcSave'); if(btn) btn.onclick=saveComments;
+}
+function teacherFor(cls){ const t=(data.staff||[]).filter(x=>x.Class_Assigned===cls && x.Status==='Active')[0]; return t? t.Full_Name : '-'; }
 function saveComments(){
   const approve = $('#rcApprove') ? $('#rcApprove').checked : false;
-  enqueue('saveReportCardComments',[rc.student.Student_ID, rc.session, rc.term, $('#rcClass').value, rc.canEditHeadComment?$('#rcHead').value:'', $('#rcNext')?$('#rcNext').value:'', approve],
-    'Report comments - '+fullName(rc.student)+' '+rc.term);
-  toast(navigator.onLine?'Comments saved, sending':'Comments saved on this device');
+  const traits={}; $$('#rcBody [data-trait]').forEach(function(el){ if(el.value) traits[el.dataset.trait]=Number(el.value); });
+  enqueue('saveReportCardComments',[rc.student.Student_ID, rc.session, rc.term, $('#rcClass').value, rc.canEditProprietressComment?$('#rcHead').value:'', $('#rcNext')?$('#rcNext').value:'', approve, traits],
+    'Report remarks - '+fullName(rc.student)+' '+rc.term);
+  toast(navigator.onLine?'Remarks saved, sending':'Remarks saved on this device');
 }
 $('#rcPrint').onclick=function(){ if(!rc) return toast('Open a report card first'); window.print(); };
+
+/* ---------------------------------------------------------------- audit log and lists */
+async function loadAudit(){
+  if(!navigator.onLine){ $('#auditBody').innerHTML='<p class="note warn">The audit log needs a connection.</p>'; return; }
+  $('#auditBody').innerHTML='<p class="empty">Loading...</p>';
+  try{ const rows=await api('getAuditLog',[150]);
+    $('#auditBody').innerHTML = rows.length? '<div class="scroll"><table><tr><th>When</th><th>Who</th><th>Action</th><th>Tab</th><th>Record</th><th>Detail</th></tr>'+
+      rows.map(r=>'<tr><td>'+esc(r.Timestamp)+'</td><td>'+esc(r.User_Email)+'<br><small>'+esc(r.Role||'')+'</small></td><td>'+esc(r.Action)+'</td><td>'+esc(r.Tab)+'</td><td>'+esc(r.Record_ID)+'</td><td>'+esc(String(r.New_Value||'').slice(0,60))+'</td></tr>').join('')+'</table></div>'
+      : '<div class="empty">Nothing logged yet.</div>';
+  }catch(e){ $('#auditBody').innerHTML='<p class="note err">'+esc(e.message)+'</p>'; }
+}
+let listPicked=null;
+function renderLists(){
+  const L=lists(), names=Object.keys(L).filter(k=>['Subjects','Classes','StaffIDs'].indexOf(k)<0);
+  if(!listPicked) listPicked=names[0];
+  $('#listNames').innerHTML = names.map(n=>'<button class="chip'+(n===listPicked?' on':'')+'" data-list="'+esc(n)+'">'+esc(n.replace(/_/g,' '))+' ('+(L[n]||[]).length+')</button>').join(' ');
+  $('#listValues').innerHTML = '<h3>Values for '+esc(String(listPicked).replace(/_/g,' '))+'</h3>'+
+    '<div class="bar"><input type="text" id="newListValue" placeholder="Add a value"><button class="btn sm" id="addListValue">Add</button></div>'+
+    '<div>'+(L[listPicked]||[]).map(v=>'<span class="chip" style="margin:0 6px 6px 0">'+esc(v)+'</span>').join('')+'</div>'+
+    '<p class="hint">Values come from the Lists tab of the spreadsheet. Adding one here writes it there and every dropdown picks it up after a refresh.</p>';
+  $('#addListValue').onclick=function(){
+    const v=$('#newListValue').value.trim(); if(!v) return toast('Type a value');
+    enqueue('addListValue',[listPicked,v],'Add "'+v+'" to '+listPicked);
+    toast(navigator.onLine?'Sending, then tap Refresh from database':'Queued'); $('#newListValue').value='';
+  };
+}
+$('#listNames').addEventListener('click',function(e){ const b=e.target.closest('[data-list]'); if(!b) return; listPicked=b.dataset.list; renderLists(); });
 
 /* ---------------------------------------------------------------- analytics */
 $('#anLoad').onclick=loadAnalytics;
@@ -881,6 +1093,7 @@ $('#queueList').addEventListener('click',function(e){ const b=e.target.closest('
 $('#syncNow').onclick=function(){ if(!navigator.onLine) return toast('No connection yet'); queue.forEach(o=>delete o.error); sync(); };
 $('#refreshData').onclick=async function(){ if(!navigator.onLine) return toast('No connection'); try{ await refreshData(); toast('Refreshed from the database'); }catch(e){ toast(e.message,4000);} };
 $('#logout').onclick=logout;
+$('#auditLoad').onclick=loadAudit;
 
 /* ---------------------------------------------------------------- navigation */
 const SCREENS={
@@ -893,10 +1106,12 @@ const SCREENS={
   reports:{label:'Reports',icon:'<path d="M6 2h9l5 5v15H6zM15 2v5h5M9 13h6M9 17h6"/>'},
   analytics:{label:'Analytics',icon:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'},
   staff:{label:'Staff',icon:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 8.5a3 3 0 100-5"/>'},
+  audit:{label:'Audit log',icon:'<path d="M6 2h9l5 5v15H6zM15 2v5h5M9 12h6M9 16h4"/>'},
+  listvals:{label:'Lists & values',icon:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'},
   more:{label:'More',icon:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'}
 };
 const ROLE_ORDER={
-  'Admin':['students','register','pay','billing','scores','att','reports','analytics','staff'],
+  'Admin':['students','register','pay','billing','scores','att','reports','analytics','staff','audit','listvals'],
   'Bursar':['students','register','pay','billing','analytics','staff'],
   'Teacher':['students','scores','att','reports'],
   'Head Teacher':['students','register','scores','att','reports','analytics','staff'],
@@ -918,16 +1133,22 @@ function show(name){
   $$('.screen').forEach(s=>s.classList.toggle('on', s.id==='s-'+name));
   $$('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.s===name || (name==='profile'&&b.dataset.s==='students')));
   window.scrollTo(0,0);
-  if(name==='scores') renderScoreGrid();
+  if(name==='scores') loadScores();
   if(name==='att') renderAttList();
   if(name==='more') renderQueue();
   if(name==='pay') refreshPayStudents();
-  if(name==='billing') renderBilling();
+  if(name==='billing'){ renderBilling(); if(!billRows) loadBilling(); }
   if(name==='staff') renderStaff();
+  if(name==='audit') loadAudit();
+  if(name==='listvals') renderLists();
   if(name==='reports') refreshRcStudents();
   if(name==='analytics' && !$('#anBody').innerHTML.trim()) loadAnalytics();
 }
 $('#regSave').onclick=saveStudent; $('#regCancel').onclick=function(){ show('students'); };
+$('#payHistToggle').addEventListener('click',function(e){ const b=e.target.closest('button'); if(!b) return; payHist=b.dataset.v;
+  $$('#payHistToggle button').forEach(x=>x.classList.toggle('on',x.dataset.v===payHist));
+  if(payHist==='all' && !serverPayments) loadServerPayments(); else renderPayList(); });
+$('#payRefresh').onclick=function(){ if(payHist==='all') loadServerPayments(); else renderPayList(); };
 $('#paySave').onclick=savePayment; $('#scSave').onclick=saveScores; $('#atSave').onclick=saveAttendance;
 $('#loginBtn').onclick=login;
 function showApp(){
@@ -936,7 +1157,13 @@ function showApp(){
   buildNav(); buildSelects(); renderStudents(); renderQueue(); sync();
 }
 (function init(){
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      reg.addEventListener('updatefound',function(){ const w=reg.installing; if(!w) return;
+        w.addEventListener('statechange',function(){ if(w.state==='installed' && navigator.serviceWorker.controller){ toast('A new version is ready. Close and reopen the app.',6000); } }); });
+      setInterval(function(){ reg.update(); }, 60*60*1000);
+    }).catch(function(){});
+  }
   if(cfg && cfg.token && data) showApp();
   else { $('#loginView').classList.remove('hidden'); if(cfg&&cfg.apiUrl) $('#apiUrl').value=cfg.apiUrl;
     const u=new URL(location.href).searchParams.get('api'); if(u) $('#apiUrl').value=u; }
