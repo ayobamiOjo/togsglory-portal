@@ -314,6 +314,16 @@ td input[type=text]{min-height:40px}
       <div id="staffList"></div>
     </section>
 
+    <section class="screen" id="s-admissions">
+      <h1>Admissions</h1>
+      <div class="bar">
+        <div class="seg" id="adFilter"><button data-v="Pending" class="on">Waiting</button><button data-v="Approved">Approved</button><button data-v="Declined">Declined</button></div>
+        <button class="btn quiet sm" id="adLoad">Refresh</button>
+        <button class="btn quiet sm" id="adLink">Parent form link &amp; QR</button>
+      </div>
+      <div id="adBody"></div>
+    </section>
+
     <section class="screen" id="s-audit">
       <h1>Audit log</h1>
       <p class="hint">Every change made through the portal, newest first.</p>
@@ -386,9 +396,15 @@ const phoneOk = s => { const d = digits(s); return d.length>=11 && d.length<=15;
 const emailOk = s => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(s||'').trim());
 
 /* ---------------------------------------------------------------- api */
-async function api(fn, args, opId){
-  const res = await fetch(cfg.apiUrl, { method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({ fn:fn, args:args, token: cfg && cfg.token, opId:opId }) });
+async function api(fn, args, opId, _retry){
+  let res;
+  try{
+    res = await fetch(cfg.apiUrl, { method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ fn:fn, args:args, token: cfg && cfg.token, opId:opId }) });
+  }catch(e){
+    if(!_retry && navigator.onLine){ await new Promise(r=>setTimeout(r,1200)); return api(fn,args,opId,true); }
+    throw new Error(navigator.onLine? 'Could not reach the school database. Check your connection and try again.' : 'You are offline.');
+  }
   const j = await res.json();
   if(!j.ok) throw new Error(j.error || 'Request failed');
   return j.result;
@@ -659,7 +675,8 @@ async function openProfile(id){
       '<details open><summary>Fees</summary><div class="body">'+feeTable+'<h3>Payments</h3>'+payList+'</div></details>'+
       '<details open><summary>Academic record</summary><div class="body">'+acad+'</div></details>'+
       '<details><summary>Attendance</summary><div class="body">'+att+'</div></details>';
-  }catch(e){ $('#histBody').innerHTML = '<p class="note err">'+esc(e.message)+'</p>'; }
+  }catch(e){ $('#histBody').innerHTML = '<p class="note err">'+esc(e.message)+'</p><button class="btn quiet sm" id="histRetry">Try again</button>';
+    const r=$('#histRetry'); if(r) r.onclick=function(){ openProfile(id); }; }
 }
 $('#profBack').onclick=function(){ show('students'); };
 function changePhoto(id){
@@ -1063,6 +1080,96 @@ function saveComments(){
 }
 $('#rcPrint').onclick=function(){ if(!rc) return toast('Open a report card first'); window.print(); };
 
+/* ---------------------------------------------------------------- admissions */
+let admissions=null, adFilter='Pending';
+const ADMIN_FIELDS=[['Grade_Level','Grade_Level',true],['Enrollment_Status','Enrollment_Status',false],
+  ['Last_Grade_Completed','Grade_Level',false],['Session_Admitted','Session',false]];
+async function loadAdmissions(){
+  if(!navigator.onLine){ $('#adBody').innerHTML='<p class="note warn">Admissions need a connection.</p>'; return; }
+  $('#adBody').innerHTML='<p class="empty">Loading...</p>';
+  try{ admissions = await api('getAdmissions',[adFilter]); renderAdmissions(); }
+  catch(e){ $('#adBody').innerHTML='<p class="note err">'+esc(e.message)+(/No Admissions tab/.test(e.message)?'<br><br>Run <b>createAdmissionForm()</b> once from the Apps Script editor to create the parent form.':'')+'</p>'; }
+}
+function renderAdmissions(){
+  if(!admissions || !admissions.length){ $('#adBody').innerHTML='<div class="empty">Nothing '+(adFilter==='Pending'?'waiting for review':adFilter.toLowerCase())+'.</div>'; return; }
+  $('#adBody').innerHTML = admissions.map(function(a){
+    const f=a.family;
+    return '<details data-row="'+a._row+'"><summary>'+esc(f.Guardian1_Full_Name||'(no name)')+' &mdash; '+a.children.length+' child'+(a.children.length===1?'':'ren')+
+      ' &middot; '+esc(String(a.submitted).slice(0,10))+(a.status!=='Pending'?' <span class="tag '+(a.status==='Approved'?'':'err')+'" style="margin-left:8px">'+esc(a.status)+'</span>':'')+'</summary><div class="body">'+
+      '<h3>Family</h3><dl class="kv">'+
+        '<dt>Guardian 1</dt><dd>'+esc(f.Guardian1_Full_Name)+' ('+esc(f.Guardian1_Relationship)+') &middot; '+esc(f.Guardian1_Phone)+' '+esc(f.Guardian1_Email||'')+'</dd>'+
+        (f.Guardian2_Full_Name?'<dt>Guardian 2</dt><dd>'+esc(f.Guardian2_Full_Name)+' ('+esc(f.Guardian2_Relationship)+') &middot; '+esc(f.Guardian2_Phone)+'</dd>':'')+
+        '<dt>Emergency</dt><dd>'+esc(f.EmergencyContact_Full_Name)+' ('+esc(f.EmergencyContact_Relationship)+') &middot; '+esc(f.EmergencyContact_Phone)+'</dd>'+
+        '<dt>Address</dt><dd>'+esc(f.Home_Address)+', '+esc(f.City)+', '+esc(f.State)+'</dd>'+
+        '<dt>Phone</dt><dd>'+esc(f.Primary_Phone)+(f.Secondary_Phone?' / '+esc(f.Secondary_Phone):'')+'</dd>'+
+        '<dt>Transport</dt><dd>'+esc(f.Transportation_Needs||'-')+'</dd></dl>'+
+      a.children.map(function(c,i){
+        return '<h3>Child '+(i+1)+': '+esc([c.First_Name,c.Middle_Name,c.Last_Name].filter(Boolean).join(' '))+'</h3>'+
+          '<dl class="kv"><dt>Born</dt><dd>'+esc(c.Date_of_Birth)+' &middot; '+esc(c.Gender)+'</dd>'+
+          '<dt>Previous school</dt><dd>'+esc(c.Previous_School||'-')+'</dd>'+
+          '<dt>Allergies</dt><dd>'+esc(c.Allergies||'-')+'</dd>'+
+          '<dt>Medical</dt><dd>'+esc(c.Medical_Conditions||'-')+'</dd>'+
+          '<dt>Medications</dt><dd>'+esc(c.Medications||'-')+'</dd>'+
+          '<dt>Support needs</dt><dd>'+esc(c.Academic_Support_Needs||'-')+'</dd>'+
+          '<dt>Consents</dt><dd>photo '+esc(c.Photo_Video_Consent||'-')+' &middot; trips '+esc(c.Field_Trip_Consent||'-')+'</dd>'+
+          (c.Additional_Notes?'<dt>Notes</dt><dd>'+esc(c.Additional_Notes)+'</dd>':'')+'</dl>'+
+          (a.status==='Pending'
+            ? '<div class="row" data-child="'+i+'"><label class="field" style="display:flex;gap:8px;align-items:center;min-width:auto;flex:0 0 auto"><input type="checkbox" data-admit checked style="width:18px;height:18px"><span style="margin:0">Admit</span></label>'+
+              ADMIN_FIELDS.map(function(af){
+                return '<label class="field"><span>'+af[0].replace(/_/g,' ')+(af[2]?' *':'')+'</span><select data-f="'+af[0]+'"><option value=""></option>'+
+                  (lists()[af[1]]||[]).map(x=>'<option '+(af[0]==='Enrollment_Status'&&x==='Pending'?'selected':'')+(af[0]==='Session_Admitted'&&x===defaultSession()?'selected':'')+'>'+esc(x)+'</option>').join('')+'</select></label>';
+              }).join('')+'</div>'
+            : '');
+      }).join('')+
+      (a.status==='Pending'
+        ? '<div class="row" style="margin-top:10px"><button class="btn" data-approve="'+a._row+'">Approve and create pupil records</button><button class="btn danger" data-decline="'+a._row+'">Decline</button></div>'
+        : '<p class="note">'+esc(a.status)+(a.createdIds?' &middot; created '+esc(a.createdIds):'')+(a.note?' &middot; '+esc(a.note):'')+'</p>')+
+      '</div></details>';
+  }).join('');
+}
+$('#adFilter').addEventListener('click',function(e){ const b=e.target.closest('button'); if(!b) return; adFilter=b.dataset.v;
+  $$('#adFilter button').forEach(x=>x.classList.toggle('on',x.dataset.v===adFilter)); loadAdmissions(); });
+$('#adLoad').onclick=loadAdmissions;
+$('#adLink').onclick=async function(){
+  try{
+    const r=await api('admissionFormUrl',[]);
+    if(!r.url) return openSheet('<h2 style="margin-top:0">Parent form</h2><p class="note warn">The form has not been created yet. In Apps Script choose <b>createAdmissionForm</b> in the function list and press Run, once. The link appears here afterwards.</p>');
+    openSheet('<h2 style="margin-top:0">Parent registration form</h2>'+
+      '<p class="hint">Print or display this code. Parents scan it, fill the form once per family, and it appears here for approval.</p>'+
+      '<img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data='+encodeURIComponent(r.url)+'" alt="QR code" style="display:block;margin:0 auto 12px;max-width:100%;border-radius:12px" onerror="this.style.display=\'none\'">'+
+      '<label class="field"><span>Link</span><input type="text" value="'+esc(r.url)+'" readonly onclick="this.select()"></label>'+
+      '<a class="btn quiet" href="'+esc(r.url)+'" target="_blank" rel="noopener">Open the form</a>');
+  }catch(e){ toast(e.message,5000); }
+};
+$('#adBody').addEventListener('click',function(e){
+  const ap=e.target.closest('[data-approve]'), dc=e.target.closest('[data-decline]');
+  if(ap){
+    const det=ap.closest('details'), row=Number(ap.dataset.approve), decisions=[];
+    let missing=null;
+    $$('#adBody details[data-row="'+row+'"] [data-child]').forEach(function(box){
+      if(!box.querySelector('[data-admit]').checked) return;
+      const d={index:Number(box.dataset.child)};
+      ADMIN_FIELDS.forEach(function(af){ d[af[0]]=box.querySelector('[data-f='+af[0]+']').value; });
+      if(!d.Grade_Level) missing=true;
+      decisions.push(d);
+    });
+    if(!decisions.length) return toast('Tick at least one child to admit');
+    if(missing) return toast('Choose a class for every child you are admitting');
+    if(!confirm('Create '+decisions.length+' pupil record'+(decisions.length===1?'':'s')+' from this submission?')) return;
+    ap.disabled=true;
+    api('approveAdmission',[row,decisions]).then(function(r){
+      toast('Created: '+r.created.join(', '),6000); refreshData(); loadAdmissions();
+    }).catch(function(err){ ap.disabled=false; toast(err.message,6000); });
+  }
+  if(dc){
+    const row=Number(dc.dataset.decline), why=prompt('Reason for declining (optional):','');
+    if(why===null) return;
+    dc.disabled=true;
+    api('declineAdmission',[row,why]).then(function(){ toast('Declined'); loadAdmissions(); })
+      .catch(function(err){ dc.disabled=false; toast(err.message,6000); });
+  }
+});
+
 /* ---------------------------------------------------------------- audit log and lists */
 async function loadAudit(){
   if(!navigator.onLine){ $('#auditBody').innerHTML='<p class="note warn">The audit log needs a connection.</p>'; return; }
@@ -1234,15 +1341,16 @@ const SCREENS={
   reports:{label:'Reports',icon:'<path d="M6 2h9l5 5v15H6zM15 2v5h5M9 13h6M9 17h6"/>'},
   analytics:{label:'Analytics',icon:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'},
   staff:{label:'Staff',icon:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 8.5a3 3 0 100-5"/>'},
+  admissions:{label:'Admissions',icon:'<path d="M4 4h11l5 5v11H4zM15 4v5h5M9 13h6M9 17h4"/><circle cx="12" cy="9" r="0"/>'},
   audit:{label:'Audit log',icon:'<path d="M6 2h9l5 5v15H6zM15 2v5h5M9 12h6M9 16h4"/>'},
   listvals:{label:'Lists & values',icon:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'},
   more:{label:'More',icon:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'}
 };
 const ROLE_ORDER={
-  'Admin':['students','register','pay','billing','scores','att','reports','analytics','staff','audit','listvals'],
+  'Admin':['students','register','pay','billing','admissions','scores','att','reports','analytics','staff','audit','listvals'],
   'Bursar':['students','register','pay','billing','analytics','staff'],
   'Teacher':['students','scores','att','reports'],
-  'Head Teacher':['students','register','scores','att','reports','analytics','staff'],
+  'Head Teacher':['students','register','admissions','scores','att','reports','analytics','staff'],
   'Parent':['students','reports']
 };
 function allowed(){ return ROLE_ORDER[user().role]||['students']; }
@@ -1267,6 +1375,7 @@ function show(name){
   if(name==='pay') refreshPayStudents();
   if(name==='billing'){ renderBilling(); if(!billRows) loadBilling(); }
   if(name==='staff') renderStaff();
+  if(name==='admissions') loadAdmissions();
   if(name==='audit') loadAudit();
   if(name==='listvals') renderLists();
   if(name==='reports') refreshRcStudents();
@@ -1290,9 +1399,9 @@ function versionBanner(){
 function showApp(){
   $('#loginView').classList.add('hidden'); $('#appView').classList.remove('hidden');
   $('#whoami').textContent = user().name+' '+user().role+(user().classAssigned?' '+user().classAssigned:'');
-  buildNav(); buildSelects(); renderStudents(); renderQueue(); versionBanner(); sync(); autoRefresh(); loadPhotos();
+  buildNav(); buildSelects(); renderStudents(); renderQueue(); versionBanner(); sync(); autoRefresh(); setTimeout(loadPhotos,1500);
 }
-const NEEDED_FUNCTIONS=['bootstrap','getStudentHistory','getStaff','saveStaff','getRecentPayments','getBillingRows','getAuditLog','addListValue','saveBillFlags','generateBills','recordPayment','saveScores','saveAttendance','getReportCard','saveReportCardComments','getAnalytics','getPhotos'];
+const NEEDED_FUNCTIONS=['bootstrap','getStudentHistory','getStaff','saveStaff','getRecentPayments','getBillingRows','getAuditLog','addListValue','saveBillFlags','generateBills','recordPayment','saveScores','saveAttendance','getReportCard','saveReportCardComments','getAnalytics','getPhotos','getAdmissions','approveAdmission'];
 function missingFunctions(v){ const have=(v&&v.functionList)||[]; if(!have.length) return []; return NEEDED_FUNCTIONS.filter(f=>have.indexOf(f)<0); }
 async function autoRefresh(){
   if(!navigator.onLine || !cfg || !cfg.token) return;
