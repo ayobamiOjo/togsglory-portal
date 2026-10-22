@@ -168,6 +168,10 @@ table.bgcat{width:100%;border-collapse:collapse;font-size:.84rem;table-layout:au
 table.bgcat th,table.bgcat td{padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 table.bgcat th{font-size:.72rem;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-2);font-weight:600;text-align:left}
 table.bgcat th.num,table.bgcat td.num{text-align:right;font-variant-numeric:tabular-nums}
+/* Edit and Mark paid are the point of this table, so they stay reachable
+   instead of sliding off the right-hand edge when it scrolls sideways. */
+table.bgcat{border-collapse:separate;border-spacing:0;overflow:visible}
+table.bgcat th:last-child,table.bgcat td:last-child{position:sticky;right:0;z-index:1;background:var(--card);box-shadow:-6px 0 6px -6px rgba(0,0,0,.18)}
 table.bgcat td.bgitem{white-space:normal;padding-left:20px}
 table.bgcat tr:last-child td{border-bottom:0}
 tr.bgsub td{background:var(--mist);font-weight:600;font-size:.76rem;color:var(--ink-2);text-transform:uppercase;letter-spacing:.03em;padding:3px 8px}
@@ -403,6 +407,12 @@ tr.bgsub td{background:var(--mist);font-weight:600;font-size:.76rem;color:var(--
       <div id="apBody"><p class="empty">Nothing loaded yet.</p></div>
     </section>
 
+    <section class="screen" id="s-expenses">
+      <h1>All expenses</h1>
+      <p class="hint" id="exAllNote" style="margin-top:-4px"></p>
+      <div id="exAllBody"><p class="empty">Nothing loaded yet.</p></div>
+    </section>
+
     <section class="screen" id="s-reports">
       <h1>Report cards</h1>
       <div class="grid2 noprint">
@@ -550,7 +560,7 @@ tr.bgsub td{background:var(--mist);font-weight:600;font-size:.76rem;color:var(--
 
 <script>
 /* ---------------------------------------------------------------- storage */
-const APP_BUILD = '2026-10-22-b68';   // the version of THIS file, shown in Test connection
+const APP_BUILD = '2026-10-22-b69';   // the version of THIS file, shown in Test connection
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzFoGD1oFThhAhT6Thxpv-VuFhL1X1sUPkJ0s4QrH9vtSnZzkCdixk94nxrnB7swxhtYg/exec';
 /*
  * This device's own storage. It is small - a few megabytes - and the entries
@@ -2682,7 +2692,8 @@ function bankBlock(){
 /* The expense list. Shows where each one belongs and which account it left,
    with a search box and a button for the whole term rather than the last 50. */
 let exFilter='';
-function expenseTable(){
+function expenseTable(idp){
+  idp = idp || '';
   const pendingBlock = pendingExpenseBlock();
   const all=(budget&&budget.expenses)||[];
   const q=exFilter.trim().toLowerCase();
@@ -2693,12 +2704,12 @@ function expenseTable(){
   return pendingBlock+'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:16px 0 6px">'+
       '<h2 style="margin:0">Expenses</h2>'+
       '<span style="display:flex;gap:6px;flex:none">'+
-        '<span class="seg"><button type="button" id="exThisTerm"'+(every?'':' class="on"')+'>This term</button>'+
-        '<button type="button" id="exEveryTerm"'+(every?' class="on"':'')+'>Every term</button></span>'+
-        (showingAll? '<button class="btn quiet sm" id="exShowRecent">Last 50</button>'
-                   : '<button class="btn quiet sm" id="exShowAll">Show all '+n+'</button>')+
+        '<span class="seg"><button type="button" id="'+idp+'exThisTerm"'+(every?'':' class="on"')+'>This term</button>'+
+        '<button type="button" id="'+idp+'exEveryTerm"'+(every?' class="on"':'')+'>Every term</button></span>'+
+        (showingAll? '<button class="btn quiet sm" id="'+idp+'exShowRecent">Last 50</button>'
+                   : '<button class="btn quiet sm" id="'+idp+'exShowAll">Show all '+n+'</button>')+
       '</span></div>'+
-    '<input type="search" id="exSearch" placeholder="Search description, payee, item or account" value="'+esc(exFilter)+'" style="margin-bottom:8px">'+
+    '<input type="search" id="'+idp+'exSearch" placeholder="Search description, payee, item or account" value="'+esc(exFilter)+'" style="margin-bottom:8px">'+
     (rows.length
       ? '<p class="hint" style="margin:-4px 0 6px">Showing '+rows.length+' of '+n+(showingAll?' (whole term)':' most recent')+
         '. '+(every? 'Every expense in the log, whatever term it belongs to.'
@@ -2717,9 +2728,11 @@ function expenseTable(){
             '<td>'+esc(e.Bank||'')+(e.BankAssumed?' <small style="color:var(--ink-2)">assumed</small>':'')+'</td>'+
             '<td class="bfcol">'+esc(e.Payment_Method||'')+'</td>'+
             '<td class="bfcol">'+esc(e.Paid_By||'')+'</td>'+
-            '<td>'+(e.Paid===false
-              ? '<button class="btn quiet sm" data-paynow="'+e.row+'">Mark paid</button>'
-              : (e.Receipt_File_ID?'<button class="btn quiet sm" data-receipt="'+esc(e.Receipt_File_ID)+'">View</button>':''))+'</td></tr>';
+            '<td style="white-space:nowrap">'+
+              '<button class="btn quiet sm" data-editexp="'+e.row+'">Edit</button> '+
+              (e.Paid===false
+                ? '<button class="btn quiet sm" data-paynow="'+e.row+'">Mark paid</button>'
+                : (e.Receipt_File_ID?'<button class="btn quiet sm" data-receipt="'+esc(e.Receipt_File_ID)+'">View</button>':''))+'</td></tr>';
         }).join('')+'</table></div>'
       : (q
           ? '<p class="empty">Nothing matches \u201c'+esc(exFilter)+'\u201d.</p>'
@@ -2735,18 +2748,28 @@ function expenseTable(){
             })()));
 }
 document.addEventListener('click',function(e){
-  if(e.target.closest('#exShowAll')){ loadBudget(true); return; }
-  if(e.target.closest('#exShowRecent')){ loadBudget(false); return; }
-  if(e.target.closest('#exEveryTerm')){ loadBudget(true, true); return; }
-  if(e.target.closest('#exThisTerm')){ loadBudget(budget&&budget.showingAll, false); return; }
+  const ed=e.target.closest('[data-editexp]');
+  if(ed){
+    const row=Number(ed.dataset.editexp);
+    const rec=((budget&&budget.expenses)||[]).filter(x=>Number(x.row)===row)[0];
+    if(!rec) return toast('Press Load first');
+    expenseSheet(rec);
+    return;
+  }
+  const tb=e.target.closest('button'); const tid=tb? tb.id : '';
+  if(/exShowAll$/.test(tid)){ loadBudget(true).then(redrawExpenses); return; }
+  if(/exShowRecent$/.test(tid)){ loadBudget(false).then(redrawExpenses); return; }
+  if(/exEveryTerm$/.test(tid)){ loadBudget(true, true).then(redrawExpenses); return; }
+  if(/exThisTerm$/.test(tid)){ loadBudget(budget&&budget.showingAll, false).then(redrawExpenses); return; }
 });
 document.addEventListener('input',function(e){
-  if(e.target.id!=='exSearch') return;
+  if(!/exSearch$/.test(e.target.id)) return;
   exFilter=e.target.value;
-  const host=document.getElementById('bgExpenses'); if(!host) return;
+  const onAllPage = e.target.id==='allexSearch';
+  const host=document.getElementById(onAllPage? 'exAllBody' : 'bgExpenses'); if(!host) return;
   const pos=e.target.selectionStart;
-  host.innerHTML=expenseTable();
-  const box=document.getElementById('exSearch');
+  host.innerHTML=expenseTable(onAllPage? 'all' : '');
+  const box=document.getElementById(e.target.id);
   if(box){ box.focus(); try{ box.setSelectionRange(pos,pos); }catch(_){} }
   setTimeout(syncHbar,60);
 });
@@ -2787,7 +2810,9 @@ document.addEventListener('click',function(ev){
   markPaidSheet(b.dataset.paynow);
 });
 
-function expenseSheet(){
+/* The same form records a new expense and changes one already in the log.
+   Pass the expense row to edit it; the figures come back filled in. */
+function expenseSheet(editing){
   const L=(budget&&budget.lists)||{};
   const cats=L.Expense_Category||[], methods=L.Payment_Method||['Bank Transfer','Cash','POS','Cheque'];
   const bankList=L.Bank||['Union Bank','Stanbic Bank','Fidelity Bank','Cash at hand'];
@@ -2804,7 +2829,9 @@ function expenseSheet(){
   ((budget&&budget.groups)||[]).forEach(g=>(g.subs||[]).forEach(sb=>(sb.items||[]).forEach(r=>add(r.category,g.primary,sb.sub,r.bank))));
   cats.forEach(c=>add(c,'Uncategorised','-',''));
   const prims=Object.keys(tree);
-  openSheet('<h2 style="margin-top:0">Record an expense</h2>'+
+  openSheet('<h2 style="margin-top:0">'+(editing?'Change this expense':'Record an expense')+'</h2>'+
+    (editing? '<p class="hint" style="margin-top:-6px">Row '+editing.row+' of the Expense Log, recorded '+
+      esc(String(editing.Date).slice(0,10))+'.</p>' : '')+
     '<label class="field"><span>Has this been paid? *</span><select id="exStatus">'+
       '<option value="Paid">Yes - the money has gone</option>'+
       '<option value="Unpaid">No - the school still owes it</option>'+
@@ -2941,22 +2968,71 @@ function expenseSheet(){
       r.readAsDataURL(f);
     }
   };
+  /* Editing: put the expense back into the form, cascading the three category
+     pickers in order so the item is actually selectable. */
+  if(editing){
+    const item=editing.Item||editing.Category||'';
+    const meta=itemMeta[item]||{};
+    const pri=editing.Primary_Category||meta.primary||'';
+    const sub=editing.Sub_Category||meta.sub||'';
+    $('#exStatus').value = editing.Paid===false ? (String(editing.Owed_To||'').trim()?'Reimburse':'Unpaid') : 'Paid';
+    statusNote();
+    if($('#exOwed')) $('#exOwed').value = editing.Owed_To||'';
+    $('#exBF').checked = String(editing.Brought_Forward||'').toUpperCase()==='YES';
+    whenNote();
+    if(editing.Date) $('#exDate').value = String(editing.Date).slice(0,10);
+    if(editing.Date_Incurred) $('#exInc').value = String(editing.Date_Incurred).slice(0,10);
+    if(editing.Session) $('#exSession').value = editing.Session;
+    if(editing.Term) $('#exTerm').value = editing.Term;
+    if(pri && [].slice.call($('#exPri').options).some(o=>o.value===pri)){
+      $('#exPri').value=pri; fillSubs();
+      if(sub && [].slice.call($('#exSub').options).some(o=>o.value===sub)){ $('#exSub').value=sub; fillItems(); }
+    }
+    if(item && [].slice.call($('#exCat').options).some(o=>o.value===item)) $('#exCat').value=item;
+    catNote();
+    $('#exAmt').value = Number(editing.Amount||0);
+    $('#exDesc').value = editing.Description||'';
+    $('#exPayee').value = editing['Payee / Vendor']||'';
+    if(editing.Payment_Method) $('#exMethod').value = editing.Payment_Method;
+    if(editing.Bank && [].slice.call($('#exBank').options).some(o=>o.value===editing.Bank)){
+      $('#exBank').dataset.touched='1';       // keep what was recorded, do not re-suggest
+      $('#exBank').value = editing.Bank;
+    }
+    $('#exRef').value = editing.Receipt_Ref||'';
+    $('#exNotes').value = editing.Notes||'';
+    bankSuggest();
+    $('#exSave').textContent = user().role==='Super Admin' ? 'Save the change' : 'Send the change for approval';
+  } else if(user().role!=='Super Admin'){
+    $('#exSave').textContent = 'Send for approval';
+  }
+
   $('#exSave').onclick=function(){
     const amt=Number($('#exAmt').value||0);
     if(!$('#exCat').value) return toast('Choose a primary category, sub-category and item');
     if(!(amt>0)) return toast('Enter an amount greater than zero');
     if($('#exStatus').value==='Reimburse' && !$('#exOwed').value.trim())
       return toast('Say who paid it and is to be reimbursed');
-    enqueue('saveExpense',[{Date:$('#exDate').value, Session:$('#exSession').value, Term:$('#exTerm').value,
+    const rec={Date:$('#exDate').value, Session:$('#exSession').value, Term:$('#exTerm').value,
       Category:$('#exCat').value, Amount:amt, Description:$('#exDesc').value.trim(), Payee:$('#exPayee').value.trim(),
       Payment_Method:$('#exMethod').value, Bank:$('#exBank').value, Receipt_Ref:$('#exRef').value.trim(), Notes:$('#exNotes').value.trim(),
       Status:$('#exStatus').value, Owed_To:$('#exOwed').value.trim(),
       broughtForward:$('#exStatus').value==='Paid' && $('#exBF').checked, Date_Incurred:$('#exInc').value||undefined,
       Paid_Session:$('#bgSession').value, Paid_Term:$('#bgTerm').value,
-      receiptFile:exFile||undefined, receiptMime:exFileMime||undefined, receiptName:exFileName||undefined}],
-      'Expense - '+$('#exCat').value+' '+naira(amt)+' ('+$('#exTerm').value+')');
-    closeSheet(); toast(navigator.onLine?'Expense saved, sending':'Saved on this device');
-    setTimeout(function(){ loadBudget(budget&&budget.showingAll); },1400);
+      receiptFile:exFile||undefined, receiptMime:exFileMime||undefined, receiptName:exFileName||undefined};
+    if(editing){
+      rec._row = editing.row;
+      enqueue('editExpense',[rec], 'Change expense row '+editing.row+' - '+$('#exCat').value+' '+naira(amt));
+      closeSheet();
+      toast(user().role==='Super Admin' ? 'Change saved, sending'
+                                        : 'Sent to the Super Admin for approval', 3500);
+    } else {
+      enqueue('saveExpense',[rec],
+        'Expense - '+$('#exCat').value+' '+naira(amt)+' ('+$('#exTerm').value+')');
+      closeSheet();
+      toast(user().role==='Super Admin' ? (navigator.onLine?'Expense saved, sending':'Saved on this device')
+                                        : 'Sent to the Super Admin for approval', 3500);
+    }
+    setTimeout(function(){ loadBudget(budget&&budget.showingAll).then(redrawExpenses); },1400);
   };
 }
 function planSheet(){
@@ -2980,16 +3056,33 @@ function planSheet(){
       Budgeted_Amount:Number($('#plAmt').value||0), Note:$('#plNote').value.trim()}],
       'Budget - '+$('#plCat').value);
     closeSheet(); toast(navigator.onLine?'Budget saved, sending':'Saved on this device');
-    setTimeout(function(){ loadBudget(budget&&budget.showingAll); },1400);
+    setTimeout(function(){ loadBudget(budget&&budget.showingAll).then(redrawExpenses); },1400);
   };
 }
 $('#bgLoad').onclick=function(){ loadBudget(budget&&budget.showingAll); };
-$('#bgViewExp').onclick=async function(){
-  if(!budget || !budget.showingAll || !budget.everyTerm) await loadBudget(true, true);
-  const host=$('#bgExpenses'); if(!host) return;
-  host.scrollIntoView({behavior:'smooth', block:'start'});
-  const box=$('#exSearch'); if(box) setTimeout(function(){ box.focus(); }, 400);
-};
+$('#bgViewExp').onclick=function(){ show('expenses'); };
+
+function redrawExpenses(){
+  const sc=document.getElementById('s-expenses');
+  if(sc && sc.classList.contains('on')) renderAllExpenses();
+}
+/* A page of its own: every expense in the log, nothing else on the screen. */
+async function loadAllExpenses(){
+  if(!navigator.onLine && !budget) { $('#exAllBody').innerHTML='<div class="empty">The expense list needs a connection.</div>'; return; }
+  if(!budget || !budget.showingAll || !budget.everyTerm){
+    $('#exAllBody').innerHTML=skeleton(6);
+    await loadBudget(true, true);          // every expense, every term
+  }
+  renderAllExpenses();
+}
+function renderAllExpenses(){
+  const host=$('#exAllBody'); if(!host) return;
+  const n=(budget&&budget.expenseCount)||0;
+  $('#exAllNote').textContent = budget
+    ? n+' expense'+(n===1?'':'s')+' in the log. Press Edit on any line to change it.'
+    : '';
+  host.innerHTML = budget? expenseTable('all') : '<p class="empty">Nothing loaded yet.</p>';
+}
 $('#bgAddExp').onclick=function(){ if(!budget) return toast('Press Load first'); expenseSheet(); };
 $('#bgSetPlan').onclick=function(){ if(!budget) return toast('Press Load first'); planSheet(); };
 
@@ -3421,13 +3514,14 @@ const SCREENS={
   listvals:{label:'Lists & values',icon:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'},
   care:{label:'Care',icon:'<path d="M12 20s-6.5-4.2-6.5-9A3.5 3.5 0 0 1 12 8.6 3.5 3.5 0 0 1 18.5 11c0 4.8-6.5 9-6.5 9Z"/>'},
   budget:{label:'Expenses and Budget',navLabel:'Expenses',icon:'<path d="M3 7.5h18v11H3z"/><path d="M3 11h18"/><circle cx="8" cy="15" r="1.2"/>'},
+  expenses:{label:'All expenses',icon:'<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/>'},
   approvals:{label:'Approvals',icon:'<path d="M4 4h16v16H4z"/><path d="M8 12l3 3 5-6"/>'},
   more:{label:'More',icon:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'}
 };
 const ROLE_ORDER={
-  'Super Admin':['students','register','pay','billing','approvals','admissions','scores','att','reports','attdash','analytics','care','budget','staff','audit','listvals'],
-  'Admin':['students','register','pay','billing','approvals','admissions','scores','att','reports','attdash','analytics','care','budget','staff','audit','listvals'],
-  'Manager':['students','register','pay','billing','approvals','admissions','scores','att','reports','attdash','analytics','care','budget','staff','audit','listvals'],
+  'Super Admin':['students','register','pay','billing','approvals','admissions','scores','att','reports','attdash','analytics','care','budget','expenses','staff','audit','listvals'],
+  'Admin':['students','register','pay','billing','approvals','admissions','scores','att','reports','attdash','analytics','care','budget','expenses','staff','audit','listvals'],
+  'Manager':['students','register','pay','billing','approvals','admissions','scores','att','reports','attdash','analytics','care','budget','expenses','staff','audit','listvals'],
   'Bursar':['students','register','pay','billing','approvals','care','analytics','staff'],
   'Teacher':['students','scores','att','reports','attdash'],
   'Head Teacher':['students','register','admissions','scores','att','reports','attdash','analytics','staff'],
@@ -3462,6 +3556,7 @@ function show(name){
     if(!$('#cMonth').value) $('#cMonth').value=today().slice(0,7);
     fill('#cClass',(data.classes||[]).map(c=>c.name),'All classes');
     if(!care) loadCare(); else renderCare(); }
+  if(name==='expenses') loadAllExpenses();
   if(name==='approvals') loadApprovals();
   if(name==='budget' && !budget) loadBudget();
   if(name==='audit') loadAudit();
